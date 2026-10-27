@@ -251,7 +251,7 @@ window.ADVENT_CONFIG = Object.freeze({
     gold: { bough: ['#b9a66d', '#827a4c', '#404d35'], light: ['#e2d6a4', '#999467'], gold: ['#fff8da', '#e8c775', '#bd8f40'], glow: '#fff0b3' },
     forest: treeStyles[0],
   };
-  const state = { role: 'free', adFree: false, membershipRenews: true, firstDailyClaimUsed: false, claimed: [], today: getCampaignDay(), name: '', treeStyle: 'classic', unlockedTreeStyles: ['classic'], treeStyleUsage: {}, customTree: null, busy: false };
+  const state = { role: 'free', adFree: false, membershipRenews: true, firstDailyClaimUsed: false, claimed: [], today: getCampaignDay(), name: '', recipient: '', treeStyle: 'classic', unlockedTreeStyles: ['classic'], treeStyleUsage: {}, customTree: null, busy: false };
   let aiTreeDraft = null;
   let aiVideoCredit = false;
   let aiPreviewOutcome = 'success';
@@ -265,6 +265,7 @@ window.ADVENT_CONFIG = Object.freeze({
   let restoreButtonBusy = false;
   let milestoneCleanup = null;
   const blessingCards = new Map();
+  const blessingDrafts = new Map();
   let blessingShareContext = null;
 
   function getCampaignDay() {
@@ -327,6 +328,7 @@ window.ADVENT_CONFIG = Object.freeze({
     return treeStyles.find(item => item.id === styleId) || treeStyles[0];
   }
   function escapeHTML(value) { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
+  function cleanCardName(value) { return Array.from(String(value || '').trim().replace(/[\u0000-\u001f\u007f]/g, '')).slice(0, 24).join(''); }
   function readSaved() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey));
@@ -335,7 +337,8 @@ window.ADVENT_CONFIG = Object.freeze({
         state.claimed = sanitizeDays(saved.claimed);
         state.firstDailyClaimUsed = typeof saved.firstDailyClaimUsed === 'boolean' ? saved.firstDailyClaimUsed : state.claimed.length > 0;
         state.treeStyleUsage = sanitizeTreeStyleUsage(saved.treeStyleUsage);
-        state.name = typeof saved.name === 'string' ? saved.name.slice(0, 24) : '';
+        state.name = typeof saved.name === 'string' ? cleanCardName(saved.name) : '';
+        state.recipient = typeof saved.recipient === 'string' ? cleanCardName(saved.recipient) : '';
         if (preview && ['free', 'pass', 'vip'].includes(saved.role)) state.role = saved.role;
         if (preview) { state.adFree = saved.adFree === true; state.membershipRenews = saved.membershipRenews !== false; adPreviewOutcome = saved.adPreviewOutcome === 'no-fill' ? 'no-fill' : 'filled'; }
         if (preview) {
@@ -347,7 +350,7 @@ window.ADVENT_CONFIG = Object.freeze({
     } catch { /* A new or unavailable store starts with the first free blessing. */ }
   }
   function save() {
-    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
   }
   function announce(message) { $('live-status').textContent = message; }
   function toast(message) {
@@ -974,25 +977,26 @@ window.ADVENT_CONFIG = Object.freeze({
       openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${preview ? button('体验圣诞夜贺卡', 'preview-eve', 'secondary') : button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
       return;
     }
-    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'Add your name to a little light for someone you love.') + `<label class="name-label" for="card-name">Your name</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'Your name will be used to create your card.' : 'Your name stays on this device.'}</p>` + `<div class="modal-actions">${button(hasAdFreeCardAccess() ? 'Create my Christmas card' : 'Watch & create my card', 'generate', 'primary', hasAdFreeCardAccess() ? 'star' : 'play')}</div><p class="modal-note">${hasAdFreeCardAccess() ? 'Create, save and share without videos.' : 'One short video. One Christmas wish to keep.'}</p>`);
+    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button(hasAdFreeCardAccess() ? currentCard ? 'Update my Christmas card' : 'Create my Christmas card' : currentCard ? 'Watch & update my card' : 'Watch & create my card', 'generate', 'primary', hasAdFreeCardAccess() ? 'star' : 'play')}</div><p class="modal-note">${hasAdFreeCardAccess() ? 'Create, save and share without videos.' : 'One short video each time you create or update your card.'}</p>`);
+    $('card-recipient').value = state.recipient;
     $('card-name').value = state.name;
   }
   async function generateCard(target) {
     if (!canCreateCard()) return showKeepsake();
     const input = $('card-name');
     if (!input) return showKeepsake();
-    const name = input.value.trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 24);
-    if (!name) { input.setAttribute('aria-invalid', 'true'); input.focus(); errorMessage('Add your name to make this card yours.'); return; }
+    const name = cleanCardName(input.value);
+    const recipient = cleanCardName($('card-recipient')?.value);
     const version = modalVersion;
     await withBusy(target, 'Adding a little Christmas magic…', async () => {
       const cardReward = await authorizeCard();
-      state.name = name; save();
-      const canvas = config.cardMode === 'ai' && !preview ? await generateAICard(name, cardReward) : await drawCard(name);
+      state.name = name; state.recipient = recipient; save();
+      const canvas = config.cardMode === 'ai' && !preview ? await generateAICard(name, recipient, cardReward) : await drawCard(name, recipient);
       const blob = await new Promise((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Unable to create card')), 'image/png'));
       currentCard = { canvas, blob, filename: `a-little-light-christmas-${campaignYear}.png` };
       if (!$('modal').open || modalVersion !== version) return;
-      openModal(modalHeader('check', 'MADE WITH A LITTLE LOVE', 'Your Christmas wish, ready.') + '<div class="card-preview-wrap" id="card-preview"></div>' + `<div class="modal-actions">${button('Share my Christmas card', 'share-card', 'primary', 'share')}${button('Save to my phone', 'download-card', 'secondary', 'download')}${button('Edit my name', 'keepsake', 'secondary')}</div><p class="modal-note">1080 × 1440 PNG · Made to keep, made to share.</p>`);
-      canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `Christmas greeting card from ${name}, with your ${getTreeStyle(state.treeStyle).name} Christmas tree`);
+      openModal(modalHeader('check', 'MADE WITH A LITTLE LOVE', 'Your Christmas wish, ready.') + '<div class="card-preview-wrap" id="card-preview"></div>' + `<div class="modal-actions">${button('Share my Christmas card', 'share-card', 'primary', 'share')}${button('Save to my phone', 'download-card', 'secondary', 'download')}${button('Edit names', 'keepsake', 'secondary')}</div><p class="modal-note">1080 × 1440 PNG · Made to keep, made to share.</p>`);
+      canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `Christmas greeting card${recipient ? ` to ${recipient}` : ''}${name ? ` from ${name}` : ''}, with your ${getTreeStyle(state.treeStyle).name} Christmas tree`);
       $('card-preview').append(canvas);
       announce('Your Christmas card is ready to save or share.');
     });
@@ -1011,8 +1015,8 @@ window.ADVENT_CONFIG = Object.freeze({
     }
     return reward;
   }
-  async function generateAICard(name, cardReward) {
-    const data = await request('/cards', {name,treeTier:tier(),treeStyle:state.treeStyle,...cardReward});
+  async function generateAICard(name, recipient, cardReward) {
+    const data = await request('/cards', {name,recipient,treeTier:tier(),treeStyle:state.treeStyle,...cardReward});
     const url = new URL(data.imageUrl, location.origin);
     if (url.protocol !== 'https:' && url.origin !== location.origin) throw new Error('Invalid card URL');
     const image = await new Promise((resolve, reject) => {
@@ -1031,7 +1035,7 @@ window.ADVENT_CONFIG = Object.freeze({
     ctx.drawImage(image, (1080 - width) / 2, (1440 - height) / 2, width, height);
     return canvas;
   }
-  async function drawCard(name) {
+  async function drawCard(name, recipient = '') {
     const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1440;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas is unavailable');
@@ -1039,6 +1043,12 @@ window.ADVENT_CONFIG = Object.freeze({
     ctx.fillStyle = background; ctx.fillRect(0, 0, 1080, 1440);
     ctx.strokeStyle = '#c6ae6c'; ctx.lineWidth = 1.5; ctx.strokeRect(48, 48, 984, 1344); ctx.globalAlpha = .35; ctx.strokeRect(60, 60, 960, 1320); ctx.globalAlpha = 1;
     ctx.textAlign = 'center'; ctx.fillStyle = '#c7bd91'; ctx.font = '18px Arial, sans-serif'; ctx.fillText(`A LITTLE LIGHT  ·  CHRISTMAS ${campaignYear}`, 540, 142);
+    if (recipient) {
+      const addressee = `To ${recipient}`;
+      let recipientSize = 38;
+      do { ctx.font = `${recipientSize}px Georgia, serif`; if (ctx.measureText(addressee).width <= 790) break; recipientSize -= 1; } while (recipientSize > 20);
+      ctx.fillStyle = '#e4c986'; ctx.fillText(addressee, 540, 198, 790);
+    }
     ctx.fillStyle = '#eee5c9'; ctx.font = '70px Georgia, serif'; ctx.fillText('May your heart', 540, 264);
     ctx.fillStyle = '#e4c986'; ctx.font = 'italic 72px Georgia, serif'; ctx.fillText('be full of light.', 540, 346);
     const glow = ctx.createRadialGradient(540, 690, 20, 540, 690, 390); glow.addColorStop(0, '#d3bd6b18'); glow.addColorStop(1, '#d3bd6b00'); ctx.fillStyle = glow; ctx.fillRect(100, 390, 880, 650);
@@ -1052,9 +1062,11 @@ window.ADVENT_CONFIG = Object.freeze({
     } finally { URL.revokeObjectURL(objectUrl); }
     ctx.fillStyle = '#d6d6b5'; ctx.font = 'italic 27px Georgia, serif'; ctx.fillText('“The light shines in the darkness,', 540, 1060); ctx.fillText('and the darkness has not overcome it.”', 540, 1101);
     ctx.fillStyle = '#b0b28e'; ctx.font = '16px Arial, sans-serif'; ctx.fillText('JOHN 1:5', 540, 1143);
-    ctx.fillStyle = '#bcb78e'; ctx.font = 'italic 24px Georgia, serif'; ctx.fillText('With love,', 540, 1231);
-    let fontSize = 55; do { ctx.font = `${fontSize}px Georgia, serif`; if (ctx.measureText(name).width < 790) break; fontSize -= 2; } while (fontSize > 25);
-    ctx.fillStyle = '#f0dfb0'; ctx.fillText(name, 540, 1302);
+    if (name) {
+      ctx.fillStyle = '#bcb78e'; ctx.font = 'italic 24px Georgia, serif'; ctx.fillText('With love,', 540, 1231);
+      let fontSize = 55; do { ctx.font = `${fontSize}px Georgia, serif`; if (ctx.measureText(name).width < 790) break; fontSize -= 2; } while (fontSize > 25);
+      ctx.fillStyle = '#f0dfb0'; ctx.fillText(name, 540, 1302, 790);
+    }
     return canvas;
   }
   function downloadCard() {
@@ -1072,7 +1084,7 @@ window.ADVENT_CONFIG = Object.freeze({
       else { downloadCard(); toast('Card saved for sharing in your favorite app.'); }
     } catch (error) { if (error.name !== 'AbortError') toast('Sharing is unavailable here. Use Save to my phone instead.'); }
   }
-  function drawBlessingCard(day) {
+  function drawBlessingCard(day, name = '', recipient = '') {
     const [title, message, reference] = blessings[day - 1];
     const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1440;
     const ctx = canvas.getContext('2d');
@@ -1097,6 +1109,11 @@ window.ADVENT_CONFIG = Object.freeze({
       for(const word of text.split(/\s+/)) {const next=line?`${line} ${word}`:word;if(line&&ctx.measureText(next).width>maxWidth){result.push(line);line=word;}else line=next;}
       if(line)result.push(line);return result;
     };
+    if (recipient) {
+      const addressee = `To ${recipient}`;
+      let size = 36; do { ctx.font=`${size}px Georgia, serif`; if(ctx.measureText(addressee).width<=790)break; size--; } while(size>20);
+      ctx.fillStyle='#e4c986';ctx.fillText(addressee,540,329,790);
+    }
     ctx.font='68px Georgia, serif';ctx.fillStyle='#f0e2bd';
     const titleLines=lines(title,820); titleLines.forEach((line,index)=>ctx.fillText(line,540,409+index*82));
     ctx.strokeStyle='#d2bb7855';ctx.beginPath();ctx.moveTo(420,460+(titleLines.length-1)*82);ctx.lineTo(660,460+(titleLines.length-1)*82);ctx.stroke();
@@ -1104,19 +1121,25 @@ window.ADVENT_CONFIG = Object.freeze({
     const messageLines=lines(message,802); const bodyTop=titleLines.length>1?622:548;
     messageLines.forEach((line,index)=>ctx.fillText(line,540,bodyTop+index*62));
     const referenceY=Math.max(1100,bodyTop+messageLines.length*62+44);
-    ctx.font='22px Arial, sans-serif';ctx.fillStyle='#d7bf82';ctx.fillText(`INSPIRED BY ${reference.toUpperCase()}`,540,Math.min(referenceY,1210));
-    ctx.strokeStyle='#d2bb7855';ctx.beginPath();ctx.moveTo(440,1264);ctx.lineTo(640,1264);ctx.stroke();
-    ctx.fillStyle='#e0cf9d';ctx.font='italic 31px Georgia, serif';ctx.fillText('A little light, every day.',540,1320);
-    canvas.setAttribute('role','img');canvas.setAttribute('aria-label',`December ${day}. ${title} ${message} Inspired by ${reference}.`);
+    ctx.font='22px Arial, sans-serif';ctx.fillStyle='#d7bf82';ctx.fillText(`INSPIRED BY ${reference.toUpperCase()}`,540,Math.min(referenceY,1190));
+    if(name) {
+      const sender=`From ${name}`;
+      let size=32;do{ctx.font=`${size}px Georgia, serif`;if(ctx.measureText(sender).width<=790)break;size--;}while(size>20);
+      ctx.fillStyle='#e4c986';ctx.fillText(sender,540,1244,790);
+    }
+    ctx.strokeStyle='#d2bb7855';ctx.beginPath();ctx.moveTo(440,1280);ctx.lineTo(640,1280);ctx.stroke();
+    ctx.fillStyle='#e0cf9d';ctx.font='italic 31px Georgia, serif';ctx.fillText('A little light, every day.',540,1332);
+    canvas.setAttribute('role','img');canvas.setAttribute('aria-label',`December ${day}${recipient ? ` to ${recipient}` : ''}${name ? ` from ${name}` : ''}. ${title} ${message} Inspired by ${reference}.`);
     return canvas;
   }
-  async function getBlessingCard(day) {
-    if (!blessingCards.has(day)) {
-      const canvas=drawBlessingCard(day);
+  async function getBlessingCard(day, name = '', recipient = '') {
+    const key=JSON.stringify([day,name,recipient]);
+    if (!blessingCards.has(key)) {
+      const canvas=drawBlessingCard(day,name,recipient);
       const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error('Card unavailable')),'image/png'));
-      blessingCards.set(day,{canvas,blob,filename:`a-little-light-blessing-${campaignYear}-12-${String(day).padStart(2,'0')}.png`});
+      blessingCards.set(key,{canvas,blob,filename:`a-little-light-blessing-${campaignYear}-12-${String(day).padStart(2,'0')}.png`});
     }
-    return blessingCards.get(day);
+    return blessingCards.get(key);
   }
   function saveCardFile(card) {
     if (cardObjectUrl) URL.revokeObjectURL(cardObjectUrl);
@@ -1129,18 +1152,31 @@ window.ADVENT_CONFIG = Object.freeze({
       saveCardFile(await getBlessingCard(day));toast('Blessing card downloaded. No video needed.');announce(`Day ${day} card downloaded.`);
     });
   }
+  function showBlessingComposer(day) {
+    if (statusFor(day)!=='opened') return;
+    const draft=blessingDrafts.get(day)||{name:state.name,recipient:''};
+    openModal(modalHeader('share',`DECEMBER ${day}`,'Share a little light.','Add a name, or share the blessing as it is.')+`<label class="name-label" for="blessing-recipient">To · Recipient name (optional)</label><input class="name-input" id="blessing-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="blessing-names-hint"><label class="name-label" for="blessing-name">From · Your name (optional)</label><input class="name-input" id="blessing-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="blessing-names-hint"><p class="name-hint" id="blessing-names-hint">Up to 24 characters each. Both names are optional.</p><div class="modal-actions">${button(blessingShareNeedsAd()?'Watch & preview share card':'Preview share card',`prepare-blessing-share:${day}`,'primary',blessingShareNeedsAd()?'play':'share')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">${blessingShareNeedsAd()?'One short video each time you create or update a share card.':'Personalize and share without videos.'}</p>`);
+    $('blessing-recipient').value=draft.recipient;
+    $('blessing-name').value=draft.name;
+  }
   function showBlessingShareSheet(day,card) {
-    openModal(modalHeader('share',`DECEMBER ${day}`,'Share a little light.')+'<div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div>'+`<div class="share-destinations">${preview ? ['Messages','WhatsApp','More'].map((name,index)=>`<button type="button" data-action="preview-blessing-share:${index}"><span>${icon('share')}</span>${name}</button>`).join('') : button('Choose an app','native-blessing-share','primary','share')}</div><div class="modal-actions">${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">${preview?'分享面板模拟 · 不会发送给他人':'Your blessing card is ready to share.'}</p>`);
+    openModal(modalHeader('share',`DECEMBER ${day}`,'Share a little light.')+'<div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div>'+`<div class="share-destinations">${preview ? ['Messages','WhatsApp','More'].map((name,index)=>`<button type="button" data-action="preview-blessing-share:${index}"><span>${icon('share')}</span>${name}</button>`).join('') : button('Choose an app','native-blessing-share','primary','share')}</div><div class="modal-actions">${button('Edit names',`share:${day}`,'secondary')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">${preview?'分享面板模拟 · 不会发送给他人':'Your blessing card is ready to share.'}</p>`);
     blessingShareContext={day,card};$('blessing-share-preview').append(card.canvas);
   }
   async function shareBlessing(day,target) {
     if (statusFor(day)!=='opened') return;
+    const name=cleanCardName($('blessing-name')?.value);
+    const recipient=cleanCardName($('blessing-recipient')?.value);
     const version=modalVersion;
     await withBusy(target,blessingShareNeedsAd()?'Waiting for your video…':'Preparing to share…',async()=>{
       if(blessingShareNeedsAd()) await requestRewardVideo({placement:'blessing-share',day});
       if(!$('modal').open||modalVersion!==version)return;
-      const card=await getBlessingCard(day);
-      if($('modal').open&&modalVersion===version)showBlessingShareSheet(day,card);
+      const card=await getBlessingCard(day,name,recipient);
+      if($('modal').open&&modalVersion===version){
+        blessingDrafts.set(day,{name,recipient});
+        state.name=name;save();
+        showBlessingShareSheet(day,card);
+      }
     });
   }
   function previewBlessingShare(index) {
@@ -1172,7 +1208,8 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'resume-renewal' && preview) { state.membershipRenews = true; save(); render(); showMembership(); }
     else if (action === 'claim') claimDay(Number(value), target);
     else if (action === 'catchup') claimDay(Number(value), target, true);
-    else if (action === 'share') shareBlessing(Number(value), target);
+    else if (action === 'share') showBlessingComposer(Number(value));
+    else if (action === 'prepare-blessing-share') shareBlessing(Number(value), target);
     else if (action === 'download-blessing') downloadBlessing(Number(value), target);
     else if (action === 'show-blessing') showDay(Number(value));
     else if (action === 'preview-blessing-share') previewBlessingShare(Number(value));
@@ -1199,7 +1236,7 @@ window.ADVENT_CONFIG = Object.freeze({
       setPreviewProgress(stage === 0 ? 0 : candleData[stage - 1].threshold);
       if (stage) showMilestoneCelebration(stage); else closeModal();
     }
-    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('体验已重置'); }
+    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('体验已重置'); }
   }
 
   readSaved();
@@ -1220,7 +1257,13 @@ window.ADVENT_CONFIG = Object.freeze({
   $('modal-content').addEventListener('click', handleAction);
   $('modal-content').addEventListener('input', event => { if (event.target.id === 'ai-tree-prompt') { $('ai-prompt-count').textContent = `${event.target.value.length} / 120`; event.target.removeAttribute('aria-invalid'); $('modal-error')?.remove(); } if (event.target.id === 'preview-progress' && !state.busy) setPreviewProgress(Number(event.target.value)); });
   $('modal-content').addEventListener('change', event => { if(event.target.id==='preview-tree-switches'&&preview&&!state.busy){const used=Number(event.target.value);if(Number.isInteger(used)&&used>=0&&used<=3){state.treeStyleUsage[treeSwitchDayKey()]=used;save();}} if(event.target.id==='preview-ad-outcome'&&preview&&!state.busy&&['filled','no-fill'].includes(event.target.value)){adPreviewOutcome=event.target.value;save();} if (event.target.id === 'preview-membership' && preview && !state.busy) { state.adFree = ['active', 'cancelled'].includes(event.target.value); state.membershipRenews = event.target.value !== 'cancelled'; save(); render(); } if (event.target.id === 'ai-preview-outcome' && ['success', 'failure'].includes(event.target.value)) aiPreviewOutcome = event.target.value; if (event.target.id === 'preview-day' && !state.busy) { setPreviewDay(Number(event.target.value)); showPreviewControls(); } });
-  $('modal-content').addEventListener('keydown', (event) => { if (event.key === 'Enter' && event.target.id === 'card-name' && !state.busy) { event.preventDefault(); generateCard(document.querySelector('[data-action="generate"]')); } });
+  $('modal-content').addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.isComposing || state.busy) return;
+    if (event.target.id === 'card-recipient') { event.preventDefault(); $('card-name').focus(); }
+    else if (event.target.id === 'card-name') { event.preventDefault(); generateCard(document.querySelector('[data-action="generate"]')); }
+    else if (event.target.id === 'blessing-recipient') { event.preventDefault(); $('blessing-name').focus(); }
+    else if (event.target.id === 'blessing-name') { event.preventDefault(); const target=document.querySelector('[data-action^="prepare-blessing-share:"]'); if(target)shareBlessing(Number(target.dataset.action.split(':')[1]),target); }
+  });
   $('modal-close').addEventListener('click', () => { if (!state.busy) closeModal(); });
   $('modal').addEventListener('cancel', (event) => { event.preventDefault(); if (!state.busy) closeModal(); });
   $('modal').addEventListener('click', (event) => { if (event.target === $('modal') && !state.busy) closeModal(); });
