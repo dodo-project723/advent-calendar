@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#111c1b">
   <meta name="color-scheme" content="dark">
   <meta name="description" content="A little light, every day. Open 24 daily blessings, light your Advent candles, and create a Christmas keepsake.">
-  <title>Advent Calendar · Interactive Demo</title>
+  <title>Advent Calendar</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23111c1b'/%3E%3Cpath d='m32 8 6 18 18 6-18 6-6 18-6-18-18-6 18-6Z' fill='%23e6c986'/%3E%3C/svg%3E">
   <style>
 @charset "UTF-8";
@@ -33,7 +33,7 @@ dialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:480px;ma
 .tree-style-button{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;min-width:76px;padding:8px;border:0;border-radius:6px;background:transparent;color:#99aa90;font-size:9px;white-space:nowrap}.tree-style-button>.icon{width:12px;height:12px;stroke-width:1.4}.tree-style-button:active{color:#dfcfa5;background:#cbb7760a}.tree-card[data-tree-style="snowfall"] .tree-halo{background:radial-gradient(ellipse,#b2e4ff25,transparent 70%)}.tree-card[data-tree-style="candy"] .tree-halo{background:radial-gradient(ellipse,#f3958d19,transparent 70%)}
 .day.is-today{animation:today-breathe 2.6s ease-in-out infinite;z-index:1}.day.is-today .today-pin{width:5px;height:5px;background:#526235;box-shadow:0 0 0 2px #fff4c257}.day.is-today.is-finale .day-number{color:#29311f}.day.is-today:focus-visible{outline:2px solid #fff1c6;outline-offset:3px}
 @keyframes today-breathe{0%,100%{box-shadow:0 0 0 1px #f6d88d24,0 0 5px #edce7c12;border-color:#dfc480}50%{box-shadow:0 0 0 2px #f6d88d70,0 0 18px 3px #edce7c45;border-color:#fff0be}}
-.tree-style-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:23px}.tree-style-option{display:flex;flex-direction:column;align-items:center;min-width:0;padding:0 0 13px;overflow:hidden;border:1px solid #bdad7830;border-radius:13px;background:#11241b;color:#d5d8c0;transition:border-color .2s,background .2s}.tree-style-option[aria-pressed="true"]{border-color:var(--gold);background:#2d3a28;box-shadow:inset 0 0 0 1px #e6c98633}.style-thumbnail{display:block;align-self:stretch;height:122px;background:radial-gradient(ellipse at 50% 60%,#cdb87315,transparent 70%)}.style-thumbnail[data-look="snowfall"]{background:radial-gradient(ellipse at 50% 60%,#a1d5f028,transparent 75%)}.style-thumbnail[data-look="candy"]{background:radial-gradient(ellipse at 50% 60%,#e18d8b1a,transparent 75%)}.style-thumbnail svg{display:block;width:100%;height:122px;filter:drop-shadow(0 5px 5px #0003)}.style-name{font-family:var(--serif);font-size:15px;line-height:1.3;white-space:nowrap}.style-access{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:6px;font-size:9px;color:#a4b49a;min-height:13px}.style-access .icon{width:10px;height:10px}.tree-style-option[aria-pressed="true"] .style-access{color:#ddcc95}.video-preview{margin-top:16px;aspect-ratio:auto;min-height:130px;gap:3px;align-content:center}.video-preview .text-button{font-family:var(--font);justify-self:center;color:#c1c9b4;font-size:11px}
+.tree-style-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:23px}.tree-style-option{display:flex;flex-direction:column;align-items:center;min-width:0;padding:0 0 13px;overflow:hidden;border:1px solid #bdad7830;border-radius:13px;background:#11241b;color:#d5d8c0;transition:border-color .2s,background .2s}.tree-style-option[aria-pressed="true"]{border-color:var(--gold);background:#2d3a28;box-shadow:inset 0 0 0 1px #e6c98633}.style-thumbnail{display:block;align-self:stretch;height:122px;background:radial-gradient(ellipse at 50% 60%,#cdb87315,transparent 70%)}.style-thumbnail[data-look="snowfall"]{background:radial-gradient(ellipse at 50% 60%,#a1d5f028,transparent 75%)}.style-thumbnail[data-look="candy"]{background:radial-gradient(ellipse at 50% 60%,#e18d8b1a,transparent 75%)}.style-thumbnail svg{display:block;width:100%;height:122px;filter:drop-shadow(0 5px 5px #0003)}.style-name{font-family:var(--serif);font-size:15px;line-height:1.3;white-space:nowrap}.style-access{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:6px;font-size:9px;color:#a4b49a;min-height:13px}.style-access .icon{width:10px;height:10px}.tree-style-option[aria-pressed="true"] .style-access{color:#ddcc95}.video-preview{margin-top:16px;aspect-ratio:auto;min-height:130px;gap:3px;align-content:center}.video-preview .ad-label{font:9px var(--font);letter-spacing:1.8px;color:#93a68a}.video-preview .demo-video-count{font:11px var(--font);color:#bdc9b0;margin:5px 0}.video-preview .text-button{font-family:var(--font);justify-self:center;color:#c1c9b4;font-size:11px}
 @media(max-width:359px){.style-name{font-size:13px}.style-thumbnail,.style-thumbnail svg{height:105px}.tree-style-button{font-size:9px;padding:8px;gap:4px}}
 
 .ai-tree-entry{width:100%;display:flex;align-items:center;gap:10px;text-align:left;margin-top:20px;padding:13px 12px;border:1px solid #baa0df55;border-radius:12px;background:linear-gradient(115deg,#4d3d6440,#34394c28);color:#e9def6}.ai-entry-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:#c7a8e516;color:#e1c5ff}.ai-entry-icon>.icon{width:21px;height:21px}.ai-tree-entry>span:nth-child(2){flex:1;min-width:0}.ai-tree-entry strong{font-size:13px;font-weight:500;display:block}.ai-tree-entry em{display:inline-block;vertical-align:2px;font-family:var(--font);font-size:8px;line-height:1;padding:3px 4px;margin-left:3px;font-style:normal;letter-spacing:.7px;border-radius:4px;background:#d7b7ec20;color:#dbc4ed}.ai-tree-entry small{display:block;font-size:9px;color:#b3a9c0;margin-top:4px;line-height:1.5}.ai-tree-entry>.icon{width:15px;height:15px;color:#bd9ed8}.ai-tree-entry+.tree-style-options{margin-top:13px}.tree-style-option.is-custom{grid-column:1/-1;display:grid;grid-template-columns:64px 1fr auto;gap:9px;align-items:center;padding:0 12px 0 0;text-align:left}.is-custom .style-thumbnail,.is-custom .style-thumbnail svg{height:64px}.is-custom .style-access{margin:0}.ai-prompt{resize:none;min-height:105px;font-size:15px}.ai-prompt[aria-invalid="true"]{border-color:#e5a58b}.ai-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.ai-suggestions button{min-height:38px;padding:7px 10px;border-radius:20px;border:1px solid #ba9fd334;background:#b494d008;color:#c8b9d5;font-size:10px}.ai-suggestions button:active{background:#ba9fd322}#ai-prompt-hint{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}#ai-prompt-count{white-space:nowrap}.ai-tree-result{height:235px;margin:12px auto 0;max-width:270px;border:1px solid #c2a2dc29;border-radius:18px;background:radial-gradient(ellipse at 50% 45%,#b88fdf25,transparent 70%)}.ai-tree-result svg{display:block;width:100%;height:100%;filter:drop-shadow(0 7px 10px #0004)}.ai-result-prompt{font-family:var(--serif);font-size:15px;line-height:1.6;text-align:center;color:#cfc0dc;margin:12px 5px 0;overflow-wrap:anywhere}.ai-generating{padding:25px 0 30px;text-align:center;color:#c2afcf;font-size:12px;min-height:180px}.ai-orbit{display:grid;place-items:center;width:80px;height:80px;margin:0 auto 20px;border-radius:50%;border:1px solid #caa8ec55;background:radial-gradient(circle,#c9a0e72a,transparent 72%);animation:ai-glow 1.6s ease-in-out infinite}.ai-orbit .icon{height:34px;width:34px;color:#e6ceff;stroke-width:1}.tree-card[data-tree-style="custom"] .tree-halo{background:radial-gradient(ellipse,#d3a0ed20,transparent 70%)}
@@ -118,7 +118,7 @@ window.ADVENT_CONFIG = Object.freeze({
     <header class="topbar">
       <a class="wordmark" href="./" aria-label="Advent Calendar home"><svg class="icon brand-star"><use href="#i-star"/></svg><h1>Advent Calendar</h1></a>
       <span class="campaign-dates" id="campaign-dates">DEC 1–24</span>
-      <button class="preview-entry" id="preview-button" type="button" hidden>体验设置</button>
+      <button class="preview-entry" id="preview-button" type="button" hidden>设置</button>
       <button class="icon-button" id="about-button" aria-label="How Advent works"><svg class="icon"><use href="#i-info"/></svg></button>
     </header>
 
@@ -345,6 +345,8 @@ window.ADVENT_CONFIG = Object.freeze({
           if (saved.customTree && typeof saved.customTree.prompt === 'string' && Object.prototype.hasOwnProperty.call(aiPalettes, saved.customTree.palette) && ['pearls', 'snow', 'bows', 'crystals'].includes(saved.customTree.decoration)) state.customTree = { prompt: saved.customTree.prompt.slice(0, 120), palette: saved.customTree.palette, decoration: saved.customTree.decoration };
           state.unlockedTreeStyles = sanitizeTreeStyles(saved.unlockedTreeStyles);
           if (state.unlockedTreeStyles.includes(saved.treeStyle)) state.treeStyle = saved.treeStyle;
+          state.claimed = sanitizeDays(state.claimed, previewProgressLimit());
+          state.firstDailyClaimUsed = state.firstDailyClaimUsed || state.claimed.length > 0;
         }
       }
     } catch { /* A new or unavailable store starts with the first free blessing. */ }
@@ -716,7 +718,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   const aiSuggestions = ['Pink branches, pearl ornaments', 'Icy blue, snowy branches', 'Purple aurora, crystal ornaments'];
   function showAIComposer(prompt = aiTreeDraft?.prompt || state.customTree?.prompt || '') {
-    openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Imagine your tree</h2><label class="name-label" for="ai-tree-prompt">What would you like?</label><textarea id="ai-tree-prompt" class="name-input ai-prompt" rows="3" maxlength="120" placeholder="A pink tree with pearl ornaments…" aria-describedby="ai-prompt-hint"></textarea><div class="ai-suggestions" aria-label="Tree style ideas">${aiSuggestions.map((text, index) => `<button type="button" data-action="ai-idea:${index}">${['Pink & pearls', 'Snow & ice', 'Aurora glow'][index]}</button>`).join('')}</div><p id="ai-prompt-hint" class="name-hint">Colors, decorations, a little imagination. <span id="ai-prompt-count">${prompt.length} / 120</span></p><div class="modal-actions">${button(aiVideoCredit || isAdFree() ? 'Generate my tree' : 'Watch & generate my tree', 'ai-generate', 'primary', aiVideoCredit || isAdFree() ? 'star' : 'play')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div><p class="modal-note">Prototype · Video and AI generation are simulated.</p>`);
+    openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Imagine your tree</h2><label class="name-label" for="ai-tree-prompt">What would you like?</label><textarea id="ai-tree-prompt" class="name-input ai-prompt" rows="3" maxlength="120" placeholder="A pink tree with pearl ornaments…" aria-describedby="ai-prompt-hint"></textarea><div class="ai-suggestions" aria-label="Tree style ideas">${aiSuggestions.map((text, index) => `<button type="button" data-action="ai-idea:${index}">${['Pink & pearls', 'Snow & ice', 'Aurora glow'][index]}</button>`).join('')}</div><p id="ai-prompt-hint" class="name-hint">Colors, decorations, a little imagination. <span id="ai-prompt-count">${prompt.length} / 120</span></p><div class="modal-actions">${button(aiVideoCredit || isAdFree() ? 'Generate my tree' : 'Watch & generate my tree', 'ai-generate', 'primary', aiVideoCredit || isAdFree() ? 'star' : 'play')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`);
     $('ai-tree-prompt').value = prompt;
   }
   function makePrototypeTree(prompt) {
@@ -734,7 +736,7 @@ window.ADVENT_CONFIG = Object.freeze({
     await withBusy(target, needsVideo ? 'Opening video…' : 'Creating your tree…', async () => {
       if (needsVideo) { await requestRewardVideo({placement:'ai-tree'}); aiVideoCredit = true; }
       if (!$('modal').open || modalVersion !== version) return;
-      openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Creating your tree…</h2><div class="ai-generating" role="status" aria-live="polite"><span class="ai-orbit">${icon('star')}</span><p>Finding your colors…</p></div><p class="modal-note">Prototype · Simulated generation.</p>`);
+      openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Creating your tree…</h2><div class="ai-generating" role="status" aria-live="polite"><span class="ai-orbit">${icon('star')}</span><p>Finding your colors…</p></div>`);
       const generatingVersion = modalVersion;
       for (const message of ['Shaping the branches…', 'Adding your finishing touches…']) {
         await new Promise(resolve => setTimeout(resolve, 600));
@@ -742,7 +744,7 @@ window.ADVENT_CONFIG = Object.freeze({
         document.querySelector('.ai-generating p').textContent = message;
       }
       if (aiPreviewOutcome === 'failure') {
-        openModal(modalHeader('restore', 'LET’S TRY THAT AGAIN', 'Your tree needs another moment.', isAdFree() ? 'No video needed with your membership. Try generating again.' : 'Your access is ready. Retry without another video.') + `<div class="modal-actions">${button('Try again', 'ai-retry', 'primary', 'restore')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div><p class="modal-note">Prototype · Simulated generation failure.</p>`);
+        openModal(modalHeader('restore', 'LET’S TRY THAT AGAIN', 'Your tree needs another moment.', isAdFree() ? 'No video needed with your membership. Try generating again.' : 'Your access is ready. Retry without another video.') + `<div class="modal-actions">${button('Try again', 'ai-retry', 'primary', 'restore')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`);
         aiTreeDraft = { ...makePrototypeTree(prompt), retry: true };
         return;
       }
@@ -754,7 +756,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (!aiTreeDraft) return showAIComposer();
     const needsVideo = treeSwitchAccess('custom', aiTreeDraft.videoAuthorized) === 'video';
     const quota = treeSwitchQuotaCopy();
-    openModal(`<span class="modal-eyebrow">IMAGINED BY YOU</span><h2 id="modal-title" class="modal-title">Your tree is ready</h2><div class="ai-tree-result">${treeStyleThumbnail('custom', aiTreeDraft)}</div><p class="ai-result-prompt">“${escapeHTML(aiTreeDraft.prompt)}”</p>${quota ? `<p class="style-quota">${quota}</p>` : ''}<div class="modal-actions">${button(needsVideo ? 'Watch & use my tree' : 'Use my tree', 'ai-use', 'primary', needsVideo ? 'play' : 'check')}${button('Try another look', 'ai-tree', 'secondary')}</div><p class="modal-note">Prototype result · Your tree lights up with your progress.</p>`);
+    openModal(`<span class="modal-eyebrow">IMAGINED BY YOU</span><h2 id="modal-title" class="modal-title">Your tree is ready</h2><div class="ai-tree-result">${treeStyleThumbnail('custom', aiTreeDraft)}</div><p class="ai-result-prompt">“${escapeHTML(aiTreeDraft.prompt)}”</p>${quota ? `<p class="style-quota">${quota}</p>` : ''}<div class="modal-actions">${button(needsVideo ? 'Watch & use my tree' : 'Use my tree', 'ai-use', 'primary', needsVideo ? 'play' : 'check')}${button('Try another look', 'ai-tree', 'secondary')}</div><p class="modal-note">Your tree lights up with your progress.</p>`);
   }
   async function useAITree(target) {
     if (!aiTreeDraft) return;
@@ -809,7 +811,7 @@ window.ADVENT_CONFIG = Object.freeze({
     const status = statusFor(day);
     const blessing = blessings[day - 1];
     if (status === 'locked') {
-      openModal(modalHeader('lock', `DECEMBER ${day}`, 'Good things take a little time.', `This blessing opens on December ${day}. Or welcome the whole season today with an Advent Pass.`) + `<div class="modal-actions">${button(`Unwrap any date · ${price}`, 'pass', 'primary', 'star')}${preview ? button(`体验 12 月 ${day} 日`, `preview-day:${day}`, 'secondary') : button('I’ll be back', 'close', 'secondary')}</div>`);
+      openModal(modalHeader('lock', `DECEMBER ${day}`, 'Good things take a little time.', `This blessing opens on December ${day}. Or welcome the whole season today with an Advent Pass.`) + `<div class="modal-actions">${button(`Unwrap any date · ${price}`, 'pass', 'primary', 'star')}${button('I’ll be back', 'close', 'secondary')}</div>`);
       return;
     }
     if (status === 'missed') {
@@ -826,10 +828,10 @@ window.ADVENT_CONFIG = Object.freeze({
       openModal(modalHeader('gift', `DECEMBER ${day}`, 'A little light for today.', firstFree ? 'Your first daily blessing is free.' : needsAd ? 'Watch one short video to receive today’s blessing.' : 'Included with your ad-free access.') + `<div class="modal-actions">${button(needsAd ? 'Watch & receive blessing' : firstFree ? 'Receive blessing · Free' : 'Receive blessing', `claim:${day}`, 'primary', needsAd ? 'play' : 'gift')}</div>`);
       return;
     }
-    openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Personalize my card', `personalize-blessing:${day}`, 'primary', 'share')}${preview && day === state.today && day < 24 ? button('体验下一天', `preview-day:${day + 1}`, 'secondary', 'arrow') : ''}</div><p class="modal-note">Add optional names first, then preview, download or share.</p>`);
+    openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Personalize my card', `personalize-blessing:${day}`, 'primary', 'share')}</div>`);
   }
   async function requestRewardVideo(details) {
-    if (preview) return previewVideo();
+    if (preview && typeof config.showRewardedAd !== 'function') return previewVideo();
     if (typeof config.showRewardedAd !== 'function') return {adOutcome:'no-fill'};
     let reward;
     try { reward = await config.showRewardedAd({...details,campaignYear}); }
@@ -888,7 +890,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (adPreviewOutcome === 'no-fill') return {adOutcome:'no-fill'};
     const video = document.createElement('div');
     video.className = 'video-preview';
-    video.innerHTML = `<span class="demo-video-count" role="status" aria-live="polite">Demo video · 3</span><button type="button" class="text-button" data-action="cancel-video">Cancel video</button>`;
+    video.innerHTML = `<span class="ad-label">ADVERTISEMENT</span><span>Share a little light.</span><span class="demo-video-count" role="status" aria-live="polite">Continue in 3s</span><button type="button" class="text-button" data-action="cancel-video">Cancel video</button>`;
     $('modal-content').append(video);
     try {
       await new Promise((resolve, reject) => {
@@ -896,7 +898,7 @@ window.ADVENT_CONFIG = Object.freeze({
         const timer = setInterval(() => {
           remaining -= 1;
           if (remaining === 0) { clearInterval(timer); resolve(); }
-          else video.querySelector('.demo-video-count').textContent = `Demo video · ${remaining}`;
+          else video.querySelector('.demo-video-count').textContent = `Continue in ${remaining}s`;
         }, 1000);
         cancelPreviewAd = () => {
           clearInterval(timer);
@@ -908,11 +910,11 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showPass() {
     if (isMember()) return toast('Pick a day to unwrap your next blessing.');
-    openModal(modalHeader('star', 'THE ADVENT PASS', '24 little gifts.<br>Yours to unwrap.', 'Your gifts. Your way.') + `<ul class="pass-benefits"><li>${icon('check')}Unwrap one by one, or open them all</li><li>${icon('check')}Light your tree as you unwrap blessings</li><li>${icon('check')}Ad-free blessing access and sharing</li><li>${icon('check')}3 ad-free tree switches each day</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul><p class="plan-distinction">One-time season pass.<br>Unlimited tree switches and ad-free AI creation with monthly membership.</p><div class="modal-actions">${button(preview ? `Preview the Advent Pass · ${price}` : `Continue to checkout · ${price}`, 'checkout', 'primary', 'star')}${button('Keep my free calendar', 'close', 'secondary')}</div><p class="modal-note">${preview ? 'Preview only. No purchase or payment will be made.' : 'One-time purchase. No subscription. Your payment details and final total are shown at checkout.'}</p>`);
+    openModal(modalHeader('star', 'THE ADVENT PASS', '24 little gifts.<br>Yours to unwrap.', 'Your gifts. Your way.') + `<ul class="pass-benefits"><li>${icon('check')}Unwrap one by one, or open them all</li><li>${icon('check')}Light your tree as you unwrap blessings</li><li>${icon('check')}Ad-free blessing access and sharing</li><li>${icon('check')}3 ad-free tree switches each day</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul><p class="plan-distinction">One-time season pass.<br>Unlimited tree switches and ad-free AI creation with monthly membership.</p><div class="modal-actions">${button(`Continue to checkout · ${price}`, 'checkout', 'primary', 'star')}${button('Keep my free calendar', 'close', 'secondary')}</div><p class="modal-note">One-time purchase. No subscription. Your payment details and final total are shown at checkout.</p>`);
   }
   async function checkout(target) {
     await withBusy(target, 'Opening your season…', async () => {
-      if (preview) { state.role = 'pass'; save(); render(); closeModal(); toast('Pass active. Pick a day to unwrap.'); return; }
+      if (!config.apiBase) { const error = new Error('Checkout unavailable'); error.userMessage = 'Purchases are currently unavailable. Please try again later.'; throw error; }
       const data = await request('/checkout', {});
       const url = new URL(data.checkoutUrl);
       if (url.protocol !== 'https:') throw new Error('Invalid checkout URL');
@@ -921,19 +923,18 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showMembership() {
     const includedWithVIP = state.role === 'vip' && !state.adFree;
-    const benefits = `<ul class="pass-benefits"><li>${icon('check')}Daily blessings and catch-up without videos</li><li>${icon('check')}Share blessing cards without videos</li><li>${icon('check')}${includedWithVIP ? '3 ad-free tree switches each day' : 'Unlimited tree style switches without videos'}</li><li>${icon('check')}AI tree generation without videos</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul>`;
+    const benefits = `<ul class="pass-benefits"><li>${icon('check')}Daily blessings and catch-up without videos</li><li>${icon('check')}Download and share blessing cards without videos</li><li>${icon('check')}${includedWithVIP ? '3 ad-free tree switches each day' : 'Unlimited tree style switches without videos'}</li><li>${icon('check')}AI tree generation without videos</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul>`;
     if (isAdFree()) {
-      openModal(modalHeader('adfree', 'AD-FREE MEMBERSHIP', 'Your ad-free access') + `<div class="membership-rate">${includedWithVIP ? 'Included with VIP' : `${membershipPrice}<span> / month</span>`}</div><p class="subscription-status">${icon('check')}${includedWithVIP ? 'Active' : state.membershipRenews ? 'Active · Renews monthly' : 'Active · Renewal cancelled'}</p>${benefits}<div class="modal-actions">${button('Back to my tree', 'close', 'primary')}${includedWithVIP ? button(`Unlimited tree switches · ${membershipPrice}/month`, 'subscribe', 'secondary') : button(state.membershipRenews ? 'Cancel renewal' : 'Resume renewal', state.membershipRenews ? 'cancel-renewal' : 'resume-renewal', 'secondary')}</div><p class="modal-note">${includedWithVIP ? 'VIP includes 3 ad-free tree switches daily. Monthly membership makes them unlimited.' : state.membershipRenews ? 'Prototype subscription · No charge will be made.' : 'Ad-free access continues until the end of this billing period.'}</p>`);
+      openModal(modalHeader('adfree', 'AD-FREE MEMBERSHIP', 'Your ad-free access') + `<div class="membership-rate">${includedWithVIP ? 'Included with VIP' : `${membershipPrice}<span> / month</span>`}</div><p class="subscription-status">${icon('check')}${includedWithVIP ? 'Active' : state.membershipRenews ? 'Active · Renews monthly' : 'Active · Renewal cancelled'}</p>${benefits}<div class="modal-actions">${button('Back to my tree', 'close', 'primary')}${includedWithVIP ? button(`Unlimited tree switches · ${membershipPrice}/month`, 'subscribe', 'secondary') : button(state.membershipRenews ? 'Cancel renewal' : 'Resume renewal', state.membershipRenews ? 'cancel-renewal' : 'resume-renewal', 'secondary')}</div><p class="modal-note">${includedWithVIP ? 'VIP includes 3 ad-free tree switches daily. Monthly membership makes them unlimited.' : state.membershipRenews ? 'Renews monthly. You can cancel renewal anytime.' : 'Ad-free access continues until the end of this billing period.'}</p>`);
       return;
     }
-    openModal(modalHeader('adfree', 'MONTHLY MEMBERSHIP', 'A season without ads') + `<div class="membership-rate">${membershipPrice}<span> / month</span></div>${benefits}<p class="plan-distinction">Dates still open daily.<br>The ${price} Pass lets you unwrap any date.</p><div class="modal-actions">${button(preview ? `Preview membership · ${membershipPrice}/month` : `Join for ${membershipPrice}/month`, 'subscribe', 'primary', 'adfree')}${button('Maybe later', 'close', 'secondary')}</div><p class="modal-note">Monthly subscription · Cancel anytime.<br>${preview ? 'Prototype only. No purchase or payment will be made.' : 'Renews monthly until cancelled.'}</p>`);
+    openModal(modalHeader('adfree', 'MONTHLY MEMBERSHIP', 'A season without ads') + `<div class="membership-rate">${membershipPrice}<span> / month</span></div>${benefits}<p class="plan-distinction">Dates still open daily.<br>The ${price} Pass lets you unwrap any date.</p><div class="modal-actions">${button(`Join for ${membershipPrice}/month`, 'subscribe', 'primary', 'adfree')}${button('Maybe later', 'close', 'secondary')}</div><p class="modal-note">Monthly subscription · Cancel anytime.<br>Renews monthly until cancelled.</p>`);
   }
   async function subscribeMembership(target) {
-    await withBusy(target, 'Activating ad-free access…', async () => {
-      if (!preview) { const error = new Error('Prototype only'); error.userMessage = 'Membership checkout is available in the interactive prototype.'; throw error; }
-      state.adFree = true; state.membershipRenews = true; save(); render(); closeModal();
-      toast('Prototype: ad-free membership is active.');
-      announce('Ad-free membership active. Your calendar progress is unchanged.');
+    await withBusy(target, 'Opening checkout…', async () => {
+      const error = new Error('Membership checkout unavailable');
+      error.userMessage = 'Membership purchases are currently unavailable. Please try again later.';
+      throw error;
     });
   }
   function showCandle(index) {
@@ -942,29 +943,34 @@ window.ADVENT_CONFIG = Object.freeze({
     openModal(modalHeader('star', `THE CANDLE OF ${candle.name.toUpperCase()}`, lit ? `${candle.name} is glowing.` : `A little closer to ${candle.name.toLowerCase()}.`, lit ? candle.description : `Open ${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} to light this candle. Every day you return adds a little more light to your tree.`) + `<div class="modal-actions">${button('Back to my tree', 'close')}${!lit && !isMember() ? button('Unwrap any date with a Pass', 'pass', 'secondary') : ''}</div>`);
   }
   function showRules() {
-    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
+    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>`);
   }
   function showPreviewControls() {
     if (!preview) return;
-    openModal(`<span class="modal-eyebrow">INTERACTIVE DEMO · 不会扣款</span><h2 id="modal-title" class="modal-title">体验设置</h2><div class="demo-controls"><div><span class="demo-label">用户身份</span><div class="preview-roles" aria-label="Preview account role">${['free', 'pass', 'vip'].map(role => `<button type="button" data-action="role:${role}" aria-pressed="${state.role === role}">${role === 'free' ? '免费用户' : role === 'pass' ? 'Pass' : 'VIP'}</button>`).join('')}</div></div><label class="demo-label" for="preview-day">体验日期<select id="preview-day" class="name-input">${Array.from({length:24},(_,i)=>`<option value="${i+1}"${state.today===i+1?' selected':''}>12 月 ${i+1} 日</option>`).join('')}</select></label><div><label class="demo-label" for="preview-progress">领取进度 <output id="preview-progress-value">${state.claimed.length} / 24</output></label><input id="preview-progress" class="demo-range" type="range" min="0" max="24" step="1" value="${state.claimed.length}"><div class="preview-roles preview-stages" aria-label="Preview tree growth stages">${['Bare','Hope','Peace','Joy','Love'].map((name,index)=>`<button type="button" data-action="stage:${index}" aria-pressed="${tier()===index}">${name}</button>`).join('')}</div><p class="modal-note">点击成长阶段，预览魔法点亮动效</p></div><label class="demo-label" for="preview-membership">免广月度会员<select id="preview-membership" class="name-input"><option value="off"${!state.adFree ? ' selected' : ''}>未开通</option><option value="active"${state.adFree && state.membershipRenews ? ' selected' : ''}>已开通 · ${membershipPrice}/月</option><option value="cancelled"${state.adFree && !state.membershipRenews ? ' selected' : ''}>已取消续费 · 当期仍免广</option><option value="expired">模拟到期</option></select></label><label class="demo-label" for="preview-ad-outcome">广告填充状态<select id="preview-ad-outcome" class="name-input"><option value="filled"${adPreviewOutcome === 'filled' ? ' selected' : ''}>正常填充 · 模拟 3 秒广告</option><option value="no-fill"${adPreviewOutcome === 'no-fill' ? ' selected' : ''}>无填充 · 直接无广放行</option></select></label><label class="demo-label" for="preview-tree-switches">今日免广换树额度<select id="preview-tree-switches" class="name-input">${Array.from({length:4},(_,used)=>`<option value="${used}"${3-freeTreeSwitchesLeft()===used?' selected':''}>已用 ${used} / 3 次</option>`).join('')}</select></label><label class="demo-label" for="ai-preview-outcome">AI 原型演示状态<select id="ai-preview-outcome" class="name-input"><option value="success"${aiPreviewOutcome === 'success' ? ' selected' : ''}>生成成功</option><option value="failure"${aiPreviewOutcome === 'failure' ? ' selected' : ''}>生成失败，可免费重试</option></select></label></div><div class="modal-actions">${button('开始体验', 'close')}${button('重置为首次进入', 'reset', 'secondary')}</div>`);
+    openModal(`<span class="modal-eyebrow">SETTINGS</span><h2 id="modal-title" class="modal-title">设置</h2><div class="demo-controls"><div><span class="demo-label">用户身份</span><div class="preview-roles" aria-label="用户身份">${['free', 'pass', 'vip'].map(role => `<button type="button" data-action="role:${role}" aria-pressed="${state.role === role}">${role === 'free' ? '免费用户' : role === 'pass' ? 'Pass' : 'VIP'}</button>`).join('')}</div></div><label class="demo-label" for="preview-day">当前日期<select id="preview-day" class="name-input">${Array.from({length:24},(_,i)=>`<option value="${i+1}"${state.today===i+1?' selected':''}>12 月 ${i+1} 日</option>`).join('')}</select></label><div><label class="demo-label" for="preview-progress">领取进度 <output id="preview-progress-value">${state.claimed.length} / 24</output></label><input id="preview-progress" class="demo-range" type="range" min="0" max="${previewProgressLimit()}" step="1" value="${state.claimed.length}"><div class="preview-roles preview-stages" aria-label="圣诞树成长阶段">${['Bare','Hope','Peace','Joy','Love'].map((name,index)=>`<button type="button" data-action="stage:${index}" aria-pressed="${tier()===index}"${index > 0 && candleData[index-1].threshold > previewProgressLimit() ? ' disabled' : ''}>${name}</button>`).join('')}</div><p class="modal-note">领取进度遵循当前日期和用户身份。</p></div><label class="demo-label" for="preview-membership">免广月度会员<select id="preview-membership" class="name-input"><option value="off"${!state.adFree ? ' selected' : ''}>未开通</option><option value="active"${state.adFree && state.membershipRenews ? ' selected' : ''}>已开通 · ${membershipPrice}/月</option><option value="cancelled"${state.adFree && !state.membershipRenews ? ' selected' : ''}>已取消续费 · 当期仍免广</option><option value="expired">已到期</option></select></label><label class="demo-label" for="preview-ad-outcome">广告填充状态<select id="preview-ad-outcome" class="name-input"><option value="filled"${adPreviewOutcome === 'filled' ? ' selected' : ''}>可播放</option><option value="no-fill"${adPreviewOutcome === 'no-fill' ? ' selected' : ''}>暂不可用</option></select></label><label class="demo-label" for="preview-tree-switches">今日免广换树额度<select id="preview-tree-switches" class="name-input">${Array.from({length:4},(_,used)=>`<option value="${used}"${3-freeTreeSwitchesLeft()===used?' selected':''}>已用 ${used} / 3 次</option>`).join('')}</select></label><label class="demo-label" for="ai-preview-outcome">AI 生成状态<select id="ai-preview-outcome" class="name-input"><option value="success"${aiPreviewOutcome === 'success' ? ' selected' : ''}>生成成功</option><option value="failure"${aiPreviewOutcome === 'failure' ? ' selected' : ''}>生成失败，可免费重试</option></select></label></div><div class="modal-actions">${button('完成', 'close')}${button('重置', 'reset', 'secondary')}</div><p class="modal-note">设置仅影响本机体验状态。广告和 AI 使用本地占位，付款尚未接入。</p>`);
   }
+  function previewProgressLimit() { return isMember() ? 24 : Math.max(0, Math.min(24, state.today)); }
   function setPreviewProgress(count) {
     if (!preview || !Number.isInteger(count) || count < 0 || count > 24) return;
-    state.today = Math.max(5, Math.min(24, count + 1)); state.claimed = Array.from({length:count},(_,i)=>i+1); state.firstDailyClaimUsed = count > 0;
+    count = Math.min(count, previewProgressLimit());
+    state.claimed = Array.from({length:count},(_,i)=>i+1); state.firstDailyClaimUsed = count > 0;
     save(); render();
     if ($('preview-progress-value')) {
       $('preview-progress-value').textContent = `${count} / 24`;
-      $('preview-day').value = state.today;
+      $('preview-progress').value = count;
       document.querySelectorAll('[data-action^="stage:"]').forEach(el=>el.setAttribute('aria-pressed',String(Number(el.dataset.action.split(':')[1]) === tier())));
     }
   }
   function setPreviewDay(day) {
     if (!preview || !Number.isInteger(day) || day < 1 || day > 24) return;
-    state.today = day; save(); render();
+    state.today = day;
+    state.claimed = sanitizeDays(state.claimed, previewProgressLimit());
+    state.firstDailyClaimUsed = state.claimed.length > 0;
+    save(); render();
   }
   async function restore() {
     if (restoreButtonBusy) return;
-    if (preview) { showPreviewControls(); return; }
+    if (preview && !config.apiBase) { toast(isMember() || isAdFree() ? 'Your access is restored. Welcome back.' : 'No active access was found for this account.'); return; }
     if (!config.apiBase) { toast('Access restore is currently unavailable. Please try again later.'); return; }
     restoreButtonBusy = true;
     $('restore-button').disabled = true;
@@ -974,10 +980,10 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showKeepsake() {
     if (!canCreateCard()) {
-      openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${preview ? button('体验圣诞夜贺卡', 'preview-eve', 'secondary') : button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
+      openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
       return;
     }
-    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button('Preview my card', 'generate', 'primary', 'star')}</div><p class="modal-note">Both names are optional. Preview first, then choose to save or share.</p>`);
+    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button('Preview my card', 'generate', 'primary', 'star')}</div>`);
     $('card-recipient').value = state.recipient;
     $('card-name').value = state.name;
   }
@@ -1176,7 +1182,7 @@ window.ADVENT_CONFIG = Object.freeze({
   function showBlessingComposer(day) {
     if (statusFor(day)!=='opened') return;
     const draft=blessingDrafts.get(day)||{name:state.name,recipient:''};
-    openModal(modalHeader('share',`DECEMBER ${day}`,'Make it personal.','Add optional names, or leave both blank.')+`<label class="name-label" for="blessing-recipient">To · Recipient name (optional)</label><input class="name-input" id="blessing-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="blessing-names-hint"><label class="name-label" for="blessing-name">From · Your name (optional)</label><input class="name-input" id="blessing-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="blessing-names-hint"><p class="name-hint" id="blessing-names-hint">Up to 24 characters each. Both names are optional.</p><div class="modal-actions">${button('Preview my card',`prepare-blessing-card:${day}`,'primary','share')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">Preview first, then choose to download or share.</p>`);
+    openModal(modalHeader('share',`DECEMBER ${day}`,'Make it personal.','Add optional names, or leave both blank.')+`<label class="name-label" for="blessing-recipient">To · Recipient name (optional)</label><input class="name-input" id="blessing-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="blessing-names-hint"><label class="name-label" for="blessing-name">From · Your name (optional)</label><input class="name-input" id="blessing-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="blessing-names-hint"><p class="name-hint" id="blessing-names-hint">Up to 24 characters each. Both names are optional.</p><div class="modal-actions">${button('Preview my card',`prepare-blessing-card:${day}`,'primary','share')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div>`);
     $('blessing-recipient').value=draft.recipient;
     $('blessing-name').value=draft.name;
   }
@@ -1202,7 +1208,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showCardShareSheet(context) {
     const isBlessing = context.kind === 'blessing';
-    openModal(modalHeader('share',isBlessing ? `DECEMBER ${context.day}` : 'YOUR CHRISTMAS WISH','Choose where to share.')+'<div class="card-preview-wrap blessing-share-preview" id="share-ready-preview"></div>'+`<div class="share-destinations">${preview ? ['Messages','WhatsApp','More'].map((name,index)=>`<button type="button" data-action="preview-card-share:${index}"><span>${icon('share')}</span>${name}</button>`).join('') : button('Choose an app','native-card-share','primary','share')}</div><div class="modal-actions">${button('Back to my card','card-preview','secondary')}</div><p class="modal-note">${preview ? '分享面板模拟 · 不会发送给他人' : 'Ready to share. No further video needed for this share.'}</p>`);
+    openModal(modalHeader('share',isBlessing ? `DECEMBER ${context.day}` : 'YOUR CHRISTMAS WISH','Choose where to share.')+'<div class="card-preview-wrap blessing-share-preview" id="share-ready-preview"></div>'+`<div class="share-destinations">${button('Choose an app','native-card-share','primary','share')}</div><div class="modal-actions">${button('Back to my card','card-preview','secondary')}</div>`);
     cardExportContext={...context,shareReady:true};
     $('share-ready-preview').append(context.card.canvas);
   }
@@ -1210,13 +1216,6 @@ window.ADVENT_CONFIG = Object.freeze({
     if (!context) return;
     if (context.kind === 'christmas') showChristmasCardPreview(context.card);
     else showBlessingCardPreview(context.day,context.card);
-  }
-  function previewCardShare(index) {
-    const context=cardExportContext;
-    if(!preview || !context?.shareReady || ![0,1,2].includes(index))return;
-    context.shareReady=false;
-    const destination=['Messages','WhatsApp','More'][index];
-    openModal(modalHeader('check','A LITTLE LIGHT SHARED','Your light is on its way.',`Shared via ${destination}.`)+`<div class="modal-actions">${button(context.kind === 'blessing' ? 'Back to my blessing' : 'Make another card',context.kind === 'blessing' ? `show-blessing:${context.day}` : 'keepsake','primary')}</div><p class="modal-note">原型演示 · 未实际发送</p>`);
   }
   async function nativeCardShare() {
     const context=cardExportContext;
@@ -1255,7 +1254,6 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'prepare-blessing-card') prepareBlessingCard(Number(value), target);
     else if (action === 'download-blessing') downloadBlessing(Number(value), target);
     else if (action === 'show-blessing') showDay(Number(value));
-    else if (action === 'preview-card-share') previewCardShare(Number(value));
     else if (action === 'native-card-share') nativeCardShare();
     else if (action === 'card-preview') returnToCardPreview();
     else if (action === 'keepsake') showKeepsake();
@@ -1271,16 +1269,15 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'ai-retry') { aiPreviewOutcome = 'success'; showAIComposer(aiTreeDraft?.prompt); }
     else if (action === 'use-tree') changeTreeStyle(value, target);
     else if (action === 'unlock-tree') changeTreeStyle(value, target, true);
-    else if (action === 'preview-settings' && preview) showPreviewControls();
-    else if (action === 'preview-day' && preview) { setPreviewDay(Number(value)); showDay(state.today); }
-    else if (action === 'preview-eve' && preview) { setPreviewDay(24); showKeepsake(); }
-    else if (action === 'role' && preview && ['free', 'pass', 'vip'].includes(value)) { state.role = value; save(); render(); showPreviewControls(); }
+    else if (action === 'role' && preview && ['free', 'pass', 'vip'].includes(value)) { state.role = value; state.claimed = sanitizeDays(state.claimed, previewProgressLimit()); state.firstDailyClaimUsed = state.claimed.length > 0; save(); render(); showPreviewControls(); }
     else if (action === 'stage' && preview && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 4) {
       const stage = Number(value);
-      setPreviewProgress(stage === 0 ? 0 : candleData[stage - 1].threshold);
+      const count = stage === 0 ? 0 : candleData[stage - 1].threshold;
+      if (count > previewProgressLimit()) return;
+      setPreviewProgress(count);
       if (stage) showMilestoneCelebration(stage); else closeModal();
     }
-    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('体验已重置'); }
+    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('设置已重置'); }
   }
 
   readSaved();
