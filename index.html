@@ -78,10 +78,12 @@ dialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:480px;ma
 .finale-card{position:relative;isolation:isolate;cursor:pointer}.finale-card.is-ready{border-color:#e6c9868c;background:linear-gradient(120deg,#35452e,#23372a)}.finale-card.is-ready:before{content:"";position:absolute;inset:-1px;border:1px solid #f3dba5;border-radius:inherit;box-shadow:0 0 18px 2px #e6c98645,inset 0 0 16px #e6c9860d;pointer-events:none;opacity:.7;animation:keepsake-breathe 3.6s ease-in-out infinite}.finale-card.is-ready .finale-copy p{color:#d9d4a5}.finale-card.is-ready .finale-copy p:before{content:"";display:inline-block;vertical-align:1px;width:4px;height:4px;margin-right:5px;border-radius:50%;background:#e6c986}.finale-card.is-ready .finale-art{box-shadow:0 0 13px #e6c98626}
 @keyframes keepsake-breathe{0%,100%{opacity:.28}50%{opacity:.9}}
 .card-tree-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:7px 12px;margin-top:20px;text-align:left;border:1px solid #c9b77c40;border-radius:12px;background:#10251b;color:var(--ink)}.card-tree-mini{flex:none;width:58px;height:62px}.card-tree-mini svg{width:100%;height:100%;display:block}.card-tree-choice-copy{flex:1;min-width:0}.card-tree-choice-copy small{display:block;color:#a7b79d;font-size:10px}.card-tree-choice-copy strong{display:block;font:19px var(--serif);color:#e9d7a6;margin:2px 0}.card-tree-choice-copy span{color:#c9bb8b;font-size:11px}.card-tree-choice>.icon{color:var(--gold);width:18px}
+
+.christmas-copy-entry{display:flex;align-items:center;gap:10px;width:100%;margin:16px 0 0;padding:13px 14px;text-align:left;background:linear-gradient(110deg,#49384d55,#26392c);border:1px solid #c6b1d34a;border-radius:11px;color:#e8dec7}.christmas-copy-entry>span{flex:1;min-width:0}.christmas-copy-entry strong{display:block;font-size:13px;font-weight:400}.christmas-copy-entry small{display:block;font-size:10px;line-height:1.6;color:#c0b69d;margin-top:2px}.christmas-copy-entry>.icon{color:#d9c39b}.christmas-edit-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.christmas-edit-actions button{min-width:0;font-size:11px}.christmas-message-input{min-height:160px;resize:vertical;line-height:1.75}.christmas-message-copy{white-space:pre-wrap;overflow-wrap:anywhere;font:17px/1.8 var(--serif);color:#ece1bf;margin:0}.christmas-message-box{padding:18px;border:1px solid #c6b37b40;border-radius:12px;background:#10251b;margin-top:18px}.christmas-previous{margin-top:18px;color:#a9b69d;font-size:11px}.christmas-previous p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8}.christmas-credit{margin:12px 0 0;padding:9px 12px;background:#e6c9860b;border-radius:8px;color:#e0cd9c;font-size:11px;text-align:center}
 </style>
   <script>
 /* Interactive prototype for technical review.
-   Ads, purchases and AI tree generation are simulated locally. */
+   Ads, purchases, AI tree and blessing generation are simulated locally. */
 window.ADVENT_CONFIG = Object.freeze({
   preview: true,
   campaignYear: 2026,
@@ -90,7 +92,7 @@ window.ADVENT_CONFIG = Object.freeze({
   apiBase: '',
   csrfToken: '',
   requestTimeout: 15000,
-  // 'local' creates the illustrated card on-device. 'ai' uses POST /cards.
+  // Cards are rendered on-device with editable text. AI copy uses POST /cards/message.
   cardMode: 'local',
   // Rewarded bridge: {rewardToken}, {status:'no-fill'}, or {status:'cancelled'}.
   // Missing inventory / load errors continue without ads; user cancellation does not grant access.
@@ -273,6 +275,10 @@ window.ADVENT_CONFIG = Object.freeze({
   const blessingDrafts = new Map();
   let cardExportContext = null;
   let cardTreeFlow = null;
+  const defaultChristmasMessage = 'May this Christmas Eve bring peace to your heart, warmth to your home, and a little light for the year ahead.';
+  const christmasDraft = { message: defaultChristmasMessage, intent: '', candidate: null, generationCredit: null, exportCredits: [] };
+  let christmasEditOrigin = 'preview';
+  let christmasResetVersion = 0;
 
   function getCampaignDay() {
     if (preview) return 5;
@@ -345,6 +351,16 @@ window.ADVENT_CONFIG = Object.freeze({
         state.treeStyleUsage = sanitizeTreeStyleUsage(saved.treeStyleUsage);
         state.name = typeof saved.name === 'string' ? cleanCardName(saved.name) : '';
         state.recipient = typeof saved.recipient === 'string' ? cleanCardName(saved.recipient) : '';
+        if (saved.christmasDraft && typeof saved.christmasDraft === 'object') {
+          christmasDraft.message = cleanChristmasText(saved.christmasDraft.message) || defaultChristmasMessage;
+          christmasDraft.intent = cleanChristmasText(saved.christmasDraft.intent, 160);
+          if (preview) {
+            christmasDraft.candidate = cleanChristmasText(saved.christmasDraft.candidate) || null;
+            const credit = saved.christmasDraft.generationCredit;
+            christmasDraft.generationCredit = credit && typeof credit.id === 'string' ? {id:credit.id, adOutcome:credit.adOutcome, intent:cleanChristmasText(credit.intent ?? saved.christmasDraft.intent,160), name:cleanCardName(credit.name), recipient:cleanCardName(credit.recipient)} : null;
+            christmasDraft.exportCredits = Array.isArray(saved.christmasDraft.exportCredits) ? [...new Map(saved.christmasDraft.exportCredits.filter(item => item && typeof item.id === 'string').slice(0, 99).map(item => [item.id, {id:item.id}])).values()] : [];
+          }
+        }
         if (preview && ['free', 'pass', 'vip'].includes(saved.role)) state.role = saved.role;
         if (preview) { state.adFree = saved.adFree === true; state.membershipRenews = saved.membershipRenews !== false; adPreviewOutcome = saved.adPreviewOutcome === 'no-fill' ? 'no-fill' : 'filled'; }
         if (preview) {
@@ -358,7 +374,7 @@ window.ADVENT_CONFIG = Object.freeze({
     } catch { /* A new or unavailable store starts with the first free blessing. */ }
   }
   function save() {
-    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, christmasDraft: {message:christmasDraft.message,intent:christmasDraft.intent,...(preview ? {candidate:christmasDraft.candidate,generationCredit:christmasDraft.generationCredit,exportCredits:christmasDraft.exportCredits} : {})}, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
   }
   function announce(message) { $('live-status').textContent = message; }
   function toast(message) {
@@ -469,6 +485,7 @@ window.ADVENT_CONFIG = Object.freeze({
     const pending = $('modal').open && pendingClaimCelebration?.version === modalVersion ? pendingClaimCelebration : null;
     if (!preserveCardTreeFlow) cardTreeFlow = null;
     stopMilestoneCelebration();
+    releaseChristmasExport(cardExportContext);
     cardExportContext = null;
     modalVersion += 1;
     pendingClaimCelebration = pending ? {...pending, version:modalVersion} : null;
@@ -483,6 +500,7 @@ window.ADVENT_CONFIG = Object.freeze({
   function closeModal(fromHistory = false) {
     if (!$('modal').open) return;
     cardTreeFlow = null;
+    releaseChristmasExport(cardExportContext);
     const pending = pendingClaimCelebration?.version === modalVersion ? pendingClaimCelebration : null;
     pendingClaimCelebration = null;
     stopMilestoneCelebration();
@@ -928,7 +946,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showPass() {
     if (isMember()) return toast('Pick a day to unwrap your next blessing.');
-    openModal(modalHeader('star', 'THE ADVENT PASS', '24 little gifts.<br>Yours to unwrap.', 'Your gifts. Your way.') + `<ul class="pass-benefits"><li>${icon('check')}Unwrap one by one, or open them all</li><li>${icon('check')}Light your tree as you unwrap blessings</li><li>${icon('check')}Ad-free blessing access and sharing</li><li>${icon('check')}3 ad-free tree switches each day</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul><p class="plan-distinction">One-time season pass.<br>Unlimited tree switches and ad-free AI creation with monthly membership.</p><div class="modal-actions">${button(`Continue to checkout · ${price}`, 'checkout', 'primary', 'star')}${button('Keep my free calendar', 'close', 'secondary')}</div><p class="modal-note">One-time purchase. No subscription. Your payment details and final total are shown at checkout.</p>`);
+    openModal(modalHeader('star', 'THE ADVENT PASS', '24 little gifts.<br>Yours to unwrap.', 'Your gifts. Your way.') + `<ul class="pass-benefits"><li>${icon('check')}Unwrap one by one, or open them all</li><li>${icon('check')}Light your tree as you unwrap blessings</li><li>${icon('check')}Ad-free blessing access and sharing</li><li>${icon('check')}3 ad-free tree switches each day</li><li>${icon('check')}Create Christmas cards and AI blessings anytime · No videos</li><li>${icon('check')}Save and share your Christmas wishes ad-free</li></ul><p class="plan-distinction">One-time season pass.<br>Unlimited tree switches and ad-free AI tree creation with monthly membership.</p><div class="modal-actions">${button(`Continue to checkout · ${price}`, 'checkout', 'primary', 'star')}${button('Keep my free calendar', 'close', 'secondary')}</div><p class="modal-note">One-time purchase. No subscription. Your payment details and final total are shown at checkout.</p>`);
   }
   async function checkout(target) {
     await withBusy(target, 'Opening your season…', async () => {
@@ -941,7 +959,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showMembership() {
     const includedWithVIP = state.role === 'vip' && !state.adFree;
-    const benefits = `<ul class="pass-benefits"><li>${icon('check')}Daily blessings and catch-up without videos</li><li>${icon('check')}Download and share blessing cards without videos</li><li>${icon('check')}${includedWithVIP ? '3 ad-free tree switches each day' : 'Unlimited tree style switches without videos'}</li><li>${icon('check')}AI tree generation without videos</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul>`;
+    const benefits = `<ul class="pass-benefits"><li>${icon('check')}Daily blessings and catch-up without videos</li><li>${icon('check')}Download and share blessing cards without videos</li><li>${icon('check')}${includedWithVIP ? '3 ad-free tree switches each day' : 'Unlimited tree style switches without videos'}</li><li>${icon('check')}AI tree generation without videos</li><li>${icon('check')}Create Christmas cards and AI blessings anytime · No videos</li><li>${icon('check')}Save and share your Christmas wishes ad-free</li></ul>`;
     if (isAdFree()) {
       openModal(modalHeader('adfree', 'AD-FREE MEMBERSHIP', 'Your ad-free access') + `<div class="membership-rate">${includedWithVIP ? 'Included with VIP' : `${membershipPrice}<span> / month</span>`}</div><p class="subscription-status">${icon('check')}${includedWithVIP ? 'Active' : state.membershipRenews ? 'Active · Renews monthly' : 'Active · Renewal cancelled'}</p>${benefits}<div class="modal-actions">${button('Back to my tree', 'close', 'primary')}${includedWithVIP ? button(`Unlimited tree switches · ${membershipPrice}/month`, 'subscribe', 'secondary') : button(state.membershipRenews ? 'Cancel renewal' : 'Resume renewal', state.membershipRenews ? 'cancel-renewal' : 'resume-renewal', 'secondary')}</div><p class="modal-note">${includedWithVIP ? 'VIP includes 3 ad-free tree switches daily. Monthly membership makes them unlimited.' : state.membershipRenews ? 'Renews monthly. You can cancel renewal anytime.' : 'Ad-free access continues until the end of this billing period.'}</p>`);
       return;
@@ -961,7 +979,7 @@ window.ADVENT_CONFIG = Object.freeze({
     openModal(modalHeader('star', `THE CANDLE OF ${candle.name.toUpperCase()}`, lit ? `${candle.name} is glowing.` : `A little closer to ${candle.name.toLowerCase()}.`, lit ? candle.description : `Open ${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} to light this candle. Every day you return adds a little more light to your tree.`) + `<div class="modal-actions">${button('Back to my tree', 'close')}${!lit && !isMember() ? button('Unwrap any date with a Pass', 'pass', 'secondary') : ''}</div>`);
   }
   function showRules() {
-    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Your first blessing lights Hope and the bottom tree layer. Receive 8 blessings to light Peace and the second layer, then 16 to light Joy and the third layer. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>`);
+    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Your first blessing lights Hope and the bottom tree layer. Receive 8 blessings to light Peace and the second layer, then 16 to light Joy and the third layer. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Preview the classic wish or write your own for free. One video creates an AI blessing and includes one download or share. Each new AI version needs a new video; a failed generation can retry free. Without an included export, watch a video to download or share. Pass / VIP and ad-free membership skip these videos and can create cards early.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>`);
   }
   function showPreviewControls() {
     if (!preview) return;
@@ -1001,7 +1019,7 @@ window.ADVENT_CONFIG = Object.freeze({
       openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
       return;
     }
-    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<button type="button" class="card-tree-choice" data-action="card-tree-styles:composer" aria-label="Change Christmas tree, ${escapeHTML(getTreeStyle(state.treeStyle).name)} selected"><span class="card-tree-mini" aria-hidden="true">${treeStyleThumbnail(state.treeStyle)}</span><span class="card-tree-choice-copy"><small>Christmas tree</small><strong>${escapeHTML(getTreeStyle(state.treeStyle).name)}</strong><span>Change tree</span></span>${icon('chevron')}</button><label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button('Preview my card', 'generate', 'primary', 'star')}</div>`);
+    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<button type="button" class="card-tree-choice" data-action="card-tree-styles:composer" aria-label="Change Christmas tree, ${escapeHTML(getTreeStyle(state.treeStyle).name)} selected"><span class="card-tree-mini" aria-hidden="true">${treeStyleThumbnail(state.treeStyle)}</span><span class="card-tree-choice-copy"><small>Christmas tree</small><strong>${escapeHTML(getTreeStyle(state.treeStyle).name)}</strong><span>Change tree</span></span>${icon('chevron')}</button><label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button('Preview my card', 'generate', 'primary', 'star')}${button('Edit blessing', 'christmas-edit:composer', 'secondary')}</div><p class="modal-note">Default blessings and your own words are free to preview.</p>`);
     $('card-recipient').value = state.recipient;
     $('card-name').value = state.name;
   }
@@ -1033,14 +1051,134 @@ window.ADVENT_CONFIG = Object.freeze({
     else showKeepsake();
   }
   async function buildChristmasCardPreview(name, recipient, version) {
-    const canvas = config.cardMode === 'ai' && !preview ? await generateAICard(name, recipient) : await drawCard(name, recipient);
+    const canvas = await drawCard(name, recipient, christmasMessage());
     const blob = await new Promise((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Unable to create card')), 'image/png'));
     if (!$('modal').open || modalVersion !== version) return;
     state.name = name; state.recipient = recipient; save();
-    currentCard = { canvas, blob, filename: `a-little-light-christmas-${campaignYear}.png` };
-    canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `Christmas greeting card${recipient ? ` to ${recipient}` : ''}${name ? ` from ${name}` : ''}, with your ${getTreeStyle(state.treeStyle).name} Christmas tree`);
+    currentCard = { canvas, blob, message: christmasMessage(), filename: `a-little-light-christmas-${campaignYear}.png` };
+    canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `Christmas greeting card${recipient ? ` to ${recipient}` : ''}${name ? ` from ${name}` : ''}, with your ${getTreeStyle(state.treeStyle).name} Christmas tree. ${christmasMessage()}`);
     showChristmasCardPreview(currentCard);
     announce('Your Christmas card is ready to save or share.');
+  }
+  function cleanChristmasText(value, limit = 240) {
+    return Array.from(typeof value === 'string' ? value.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim() : '').slice(0, limit).join('');
+  }
+  function christmasMessage() { return cleanChristmasText(christmasDraft.message) || defaultChristmasMessage; }
+  function christmasExportNeedsAd() { return !hasAdFreeCardAccess() && !christmasDraft.exportCredits.some(item => !item.reserved); }
+  function captureChristmasNames() {
+    if ($('card-name')) state.name = cleanCardName($('card-name').value);
+    if ($('card-recipient')) state.recipient = cleanCardName($('card-recipient').value);
+    save();
+  }
+  function showChristmasMessageEditor(origin = 'preview') {
+    if (!canCreateCard()) return showKeepsake();
+    if (origin === 'composer') captureChristmasNames();
+    christmasEditOrigin = origin === 'composer' ? 'composer' : 'preview';
+    openModal(modalHeader('gift', 'IN YOUR OWN WORDS', 'Write from the heart.', 'Edit your blessing freely. Leave it blank to use the classic Christmas wish.') + `<label class="name-label" for="christmas-message">Your blessing</label><textarea class="name-input christmas-message-input" id="christmas-message" maxlength="480" aria-describedby="christmas-message-hint"></textarea><p class="name-hint" id="christmas-message-hint"><span id="christmas-message-count">${Array.from(christmasMessage()).length}</span> / 240 characters</p><div class="modal-actions">${button('Save blessing', 'christmas-save-message', 'primary', 'check')}${button('Keep my current blessing', 'christmas-return', 'secondary')}</div>`);
+    $('christmas-message').value = christmasMessage();
+  }
+  async function returnChristmasCard(target) {
+    if (christmasEditOrigin === 'composer') return showKeepsake();
+    await withBusy(target, 'Preparing your card…', async () => buildChristmasCardPreview(state.name, state.recipient, modalVersion));
+  }
+  async function saveChristmasMessage(target) {
+    christmasDraft.message = cleanChristmasText($('christmas-message')?.value) || defaultChristmasMessage;
+    save();
+    await returnChristmasCard(target);
+  }
+  function showChristmasAIComposer(origin = 'preview') {
+    if (!canCreateCard()) return showKeepsake();
+    if (origin === 'composer') captureChristmasNames();
+    christmasEditOrigin = origin === 'composer' ? 'composer' : 'preview';
+    const included = hasAdFreeCardAccess();
+    const retry = !!christmasDraft.generationCredit;
+    openModal(modalHeader('star', 'A WISH JUST FOR THEM', 'What is in your heart?', 'A thought, a memory, or a little thank you. Leave it blank for a Christmas Eve wish for everyone.') + `<label class="name-label" for="christmas-intent">What would you like to say? (optional)</label><textarea class="name-input christmas-message-input" id="christmas-intent"${retry ? ' readonly' : ''} maxlength="320" placeholder="We are far apart this year. I want to thank them for always being there." aria-describedby="christmas-intent-hint"></textarea><div class="ai-suggestions" aria-label="Blessing ideas">${['Thank you for being here', 'Missing you from afar', 'Wishing you peace'].map((text,index)=>`<button type="button" data-action="christmas-idea:${index}"${retry ? ' disabled' : ''}>${['Thank you','Missing you','Peace & warmth'][index]}</button>`).join('')}</div><p id="christmas-intent-hint" class="name-hint">${retry ? 'Retry your original request without another video.' : 'Up to 160 characters. Your current blessing stays until you choose a new one.'}</p><div class="modal-actions">${button(included ? 'Write my blessing' : retry ? 'Retry · No video needed' : 'Watch & write my blessing', 'christmas-ai-generate', 'primary', included || retry ? 'star' : 'play')}${christmasDraft.candidate ? button('Review my last draft', 'christmas-candidate', 'secondary') : ''}${button('Back to my card', 'christmas-return', 'secondary')}</div><p class="modal-note">${included ? 'Included with your access. Edit, save and share without videos.' : retry ? 'Your generation is already included. A successful draft also includes one download or share.' : 'One video writes a new blessing and includes one download or share. Editing your words is free.'}</p>`);
+    $('christmas-intent').value = christmasDraft.generationCredit?.intent ?? christmasDraft.intent;
+  }
+  function makePrototypeChristmasMessage(intent) {
+    const chinese = /[\u3400-\u9fff]/u.test(intent);
+    const index = Math.floor(Math.random() * 2);
+    const distant = /apart|far|miss|distance|异地|想念|远方|不在|思念/i.test(intent);
+    const thanks = /thank|陪伴|感谢|谢谢|一直/i.test(intent);
+    if (chinese) {
+      if (distant) return index ? '今夜隔着距离，想念却和树上的灯一样明亮。把这一树温柔送给你，愿平安夜有人为你留灯，也愿下一次相聚不再遥远。' : '虽然今夜不能坐在你身旁，还是想把这一树灯光送给你。谢谢你让远方也有了温度，愿你平安夜温暖，往后的日子常有平安。';
+      if (thanks) return index ? '这一年的许多温暖，都有你的身影。平安夜想认真说声谢谢，愿这一树灯光，照亮你未来每一个平凡又珍贵的日子。' : '谢谢你把陪伴藏在每一个平常的日子里。今晚想将这一树灯光送给你，愿你心里有暖意，身边有爱，岁岁常安。';
+      return index ? '愿平安夜的灯光，照亮你心里柔软的愿望。愿忙碌暂歇，牵挂有回应，往后的每一天都有人与你分享温暖。' : '把这一树微光送给你，愿今夜的宁静留在心里，愿冬日有人相伴，来年有新的希望。平安夜快乐，愿你所到之处皆有温暖。';
+    }
+    if (distant) return index ? 'Across the miles, you are still close to my heart. I am sending you a tree full of light this Christmas Eve, with a wish for warm nights and a reunion worth waiting for.' : 'I wish I could sit beside you tonight. Until then, let these little lights carry my love across the distance. May your Christmas Eve feel warm, peaceful, and a little closer to home.';
+    if (thanks) return index ? 'So much of this year felt warmer because you were in it. This Christmas Eve, these little lights are my way of saying thank you. May the love you give find its way back to you.' : 'Thank you for showing up in all the little ways that made this year brighter. This Christmas Eve, I am sending that warmth back to you, with a wish for peace, laughter, and days full of love.';
+    return index ? 'May these little lights find you wherever you are this Christmas Eve. May your worries grow quiet, your home feel warm, and the year ahead bring people who make your heart feel at home.' : 'On this Christmas Eve, I am sending you a little light and a quiet wish: may you feel loved, may you find moments of wonder, and may the days ahead be gentle with your heart.';
+  }
+  async function requestChristmasMessage(intent, authorization) {
+    if (preview) {
+      await new Promise(resolve => setTimeout(resolve, 650));
+      if (aiPreviewOutcome === 'failure') throw new Error('Message generation interrupted');
+      return {message: makePrototypeChristmasMessage(intent)};
+    }
+    return request('/cards/message', {intent, name:state.name, recipient:state.recipient, ...authorization, requestId:authorization.id});
+  }
+  async function generateChristmasMessage(target) {
+    if (!canCreateCard()) return showKeepsake();
+    if (!$('christmas-intent')) return;
+    const intent = cleanChristmasText(christmasDraft.generationCredit?.intent ?? $('christmas-intent').value, 160);
+    christmasDraft.intent = intent; save();
+    const version = modalVersion;
+    const paid = hasAdFreeCardAccess();
+    const resetVersion = christmasResetVersion;
+    let failureMessage = '';
+    await withBusy(target, !paid && !christmasDraft.generationCredit ? 'Waiting for your video…' : 'Writing your blessing…', async () => {
+      if (!paid && !christmasDraft.generationCredit) {
+        const reward = await requestRewardVideo({placement:'christmas-message'});
+        if (resetVersion !== christmasResetVersion) return;
+        christmasDraft.generationCredit = {id:`wish-${Date.now()}-${Math.random().toString(36).slice(2)}`, intent, name:state.name, recipient:state.recipient, ...reward}; save();
+      }
+      if (!$('modal').open || modalVersion !== version) return;
+      const authorization = !paid ? christmasDraft.generationCredit : {id:`wish-${Date.now()}-${Math.random().toString(36).slice(2)}`};
+      let result;
+      try { result = await requestChristmasMessage(intent, authorization); }
+      catch (error) { error.userMessage = !paid ? 'Your blessing could not be written. Your access is ready — retry without another video.' : 'Your blessing could not be written. Please try again.'; failureMessage = error.userMessage; throw error; }
+      if (resetVersion !== christmasResetVersion) return;
+      const message = cleanChristmasText(result?.message);
+      if (!message || (!paid && !preview && typeof result.exportCreditToken !== 'string')) {
+        const error = new Error('Incomplete blessing response'); error.userMessage = 'Your draft needs another moment. Retry without another video.'; failureMessage = error.userMessage; throw error;
+      }
+      if (!paid) {
+        if (!christmasDraft.exportCredits.some(item => item.id === authorization.id)) christmasDraft.exportCredits.push({id:authorization.id, resetVersion, ...(preview ? {} : {token:result.exportCreditToken})});
+        if (christmasDraft.generationCredit === authorization) christmasDraft.generationCredit = null;
+      }
+      christmasDraft.candidate = message; save();
+      if (!$('modal').open || modalVersion !== version) return;
+      showChristmasMessageCandidate();
+    });
+    if (failureMessage && $('modal').open && modalVersion === version) { showChristmasAIComposer(christmasEditOrigin); errorMessage(failureMessage); }
+  }
+  function showChristmasMessageCandidate() {
+    if (!canCreateCard()) return showKeepsake();
+    if (!christmasDraft.candidate) return showChristmasAIComposer(christmasEditOrigin);
+    openModal(modalHeader('star', 'A LITTLE CHRISTMAS MAGIC', 'A wish written for you.', 'Choose this draft, or keep the words already on your card.') + `<div class="christmas-message-box"><p class="christmas-message-copy">${escapeHTML(christmasDraft.candidate)}</p></div><details class="christmas-previous"><summary>Your current blessing</summary><p>${escapeHTML(christmasMessage())}</p></details>${!hasAdFreeCardAccess() && christmasDraft.exportCredits.length ? '<p class="christmas-credit">One download or share is included.</p>' : ''}<div class="modal-actions">${button('Use this blessing', 'christmas-use-message', 'primary', 'check')}${button('Keep my current blessing', 'christmas-discard-message', 'secondary')}</div>`);
+  }
+  async function acceptChristmasMessage(target) {
+    if (christmasDraft.candidate) { christmasDraft.message = christmasDraft.candidate; christmasDraft.candidate = null; save(); }
+    await returnChristmasCard(target);
+  }
+  async function discardChristmasMessage(target) {
+    christmasDraft.candidate = null; save();
+    await returnChristmasCard(target);
+  }
+  function consumeChristmasExport(ticket) {
+    if (!ticket) return;
+    const index = christmasDraft.exportCredits.findIndex(item => item.id === ticket.id);
+    if (index >= 0) { christmasDraft.exportCredits.splice(index, 1); save(); }
+  }
+  function releaseChristmasExport(context) {
+    if (context?.kind !== 'christmas' || !context.includedExport || context.exportInFlight) return;
+    const ticket = context.includedExport;
+    context.includedExport = null;
+    if (ticket.resetVersion !== undefined && ticket.resetVersion !== christmasResetVersion) return;
+    ticket.reserved = false;
+    const existing = christmasDraft.exportCredits.find(item => item.id === ticket.id);
+    if (!existing) christmasDraft.exportCredits.push(ticket); else existing.reserved = false;
+    save();
   }
   async function authorizeCard() {
     if (!canCreateCard()) {
@@ -1049,6 +1187,14 @@ window.ADVENT_CONFIG = Object.freeze({
       throw error;
     }
     if (hasAdFreeCardAccess()) return {};
+    const includedExport = christmasDraft.exportCredits.find(item => !item.reserved);
+    if (includedExport) {
+      if (!preview && config.apiBase) {
+        const access = await request('/cards/authorize', {exportCreditToken:includedExport.token});
+        if (access.allowed !== true) throw new Error('Included export was not authorized');
+      }
+      return {includedExport};
+    }
     const reward=await requestRewardVideo({placement:'christmas-card'});
     if(!preview&&config.apiBase) {
       const authorization=await request('/cards/authorize',reward);
@@ -1056,27 +1202,52 @@ window.ADVENT_CONFIG = Object.freeze({
     }
     return reward;
   }
-  async function generateAICard(name, recipient) {
-    const data = await request('/cards', {name,recipient,treeTier:tier(),treeStyle:state.treeStyle});
-    const url = new URL(data.imageUrl, location.origin);
-    if (url.protocol !== 'https:' && url.origin !== location.origin) throw new Error('Invalid card URL');
-    const image = await new Promise((resolve, reject) => {
-      const img = new Image(); img.crossOrigin = 'anonymous';
-      const timeout = setTimeout(() => { img.src = ''; reject(new Error('Card image timed out')); }, config.requestTimeout || 15000);
-      img.onload = () => { clearTimeout(timeout); resolve(img); };
-      img.onerror = () => { clearTimeout(timeout); reject(new Error('Card image failed')); };
-      img.src = url.href;
-    });
-    const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1440;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas is unavailable');
-    ctx.fillStyle = '#10261d'; ctx.fillRect(0, 0, 1080, 1440);
-    const scale = Math.min(1080 / image.naturalWidth, 1440 / image.naturalHeight);
-    const width = image.naturalWidth * scale; const height = image.naturalHeight * scale;
-    ctx.drawImage(image, (1080 - width) / 2, (1440 - height) / 2, width, height);
-    return canvas;
+  function wrapChristmasMessage(ctx, message, maxWidth) {
+    const segmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, {granularity:'grapheme'}) : null;
+    const characters = (text) => segmenter ? Array.from(segmenter.segment(text), item => item.segment) : Array.from(text).reduce((parts, character) => {
+      const previous = parts[parts.length - 1];
+      if (previous && (/\p{Mark}|[\u200d\ufe0e\ufe0f\u{1f3fb}-\u{1f3ff}]/u.test(character) || previous.endsWith('\u200d') || (/^[\u{1f1e6}-\u{1f1ff}]$/u.test(previous) && /^[\u{1f1e6}-\u{1f1ff}]$/u.test(character)))) parts[parts.length - 1] += character;
+      else parts.push(character);
+      return parts;
+    }, []);
+    const result = [];
+    for (const paragraph of String(message).split('\n')) {
+      let line = '';
+      for (const token of paragraph.match(/\s+|[^\s]+/gu) || []) {
+        if (/^\s+$/u.test(token)) { if (line) line += ' '; continue; }
+        if (ctx.measureText(line + token).width <= maxWidth) { line += token; continue; }
+        if (line.trimEnd()) { result.push(line.trimEnd()); line = ''; }
+        for (const character of characters(token)) {
+          if (line && ctx.measureText(line + character).width > maxWidth) { result.push(line); line = ''; }
+          line += character;
+        }
+      }
+      result.push(line.trimEnd());
+    }
+    return result;
   }
-  async function drawCard(name, recipient = '') {
+  function drawChristmasMessage(ctx, message) {
+    let text = Array.from(String(message ?? '').replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim()).slice(0, 240).join('') || defaultChristmasMessage;
+    const maxWidth = 820, top = 980, bottom = 1190;
+    let fontSize, lineHeight, lines;
+    ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#d6d6b5';
+    for (fontSize = 36; fontSize >= 20; fontSize--) {
+      ctx.font = `${fontSize}px Georgia, 'Noto Serif SC', serif`;
+      lineHeight = Math.ceil(fontSize * 1.35); lines = wrapChristmasMessage(ctx, text, maxWidth);
+      if (lines.length * lineHeight <= bottom - top) break;
+    }
+    if (fontSize < 20) {
+      // Keep every word visible when unusually many manual line breaks exceed the card's text area.
+      fontSize = 20; ctx.font = `${fontSize}px Georgia, 'Noto Serif SC', serif`;
+      lineHeight = Math.ceil(fontSize * 1.35); text = text.replace(/\s*\n\s*/g, ' ');
+      lines = wrapChristmasMessage(ctx, text, maxWidth);
+    }
+    const startY = top + (bottom - top - lines.length * lineHeight) / 2 + lineHeight / 2;
+    lines.forEach((line, index) => ctx.fillText(line, 540, startY + index * lineHeight));
+    ctx.restore();
+    return {fontSize, lineHeight, lines, top, bottom, startY};
+  }
+  async function drawCard(name, recipient = '', message = defaultChristmasMessage) {
     const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1440;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas is unavailable');
@@ -1092,17 +1263,16 @@ window.ADVENT_CONFIG = Object.freeze({
     }
     ctx.fillStyle = '#eee5c9'; ctx.font = '70px Georgia, serif'; ctx.fillText('May your heart', 540, 264);
     ctx.fillStyle = '#e4c986'; ctx.font = 'italic 72px Georgia, serif'; ctx.fillText('be full of light.', 540, 346);
-    const glow = ctx.createRadialGradient(540, 690, 20, 540, 690, 390); glow.addColorStop(0, '#d3bd6b18'); glow.addColorStop(1, '#d3bd6b00'); ctx.fillStyle = glow; ctx.fillRect(100, 390, 880, 650);
+    const glow = ctx.createRadialGradient(540, 655, 20, 540, 655, 350); glow.addColorStop(0, '#d3bd6b18'); glow.addColorStop(1, '#d3bd6b00'); ctx.fillStyle = glow; ctx.fillRect(100, 390, 880, 570);
     const svg = $('advent-tree').cloneNode(true); svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); svg.setAttribute('width', '640'); svg.setAttribute('height', '580'); svg.removeAttribute('class'); svg.removeAttribute('id');
     applyTreeLighting(svg, tier());
     const svgBlob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml;charset=utf-8' });
     const objectUrl = URL.createObjectURL(svgBlob);
     try {
       const image = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = objectUrl; });
-      ctx.drawImage(image, 210, 395, 660, 598);
+      ctx.drawImage(image, 248, 390, 584, 530);
     } finally { URL.revokeObjectURL(objectUrl); }
-    ctx.fillStyle = '#d6d6b5'; ctx.font = 'italic 27px Georgia, serif'; ctx.fillText('“The light shines in the darkness,', 540, 1060); ctx.fillText('and the darkness has not overcome it.”', 540, 1101);
-    ctx.fillStyle = '#b0b28e'; ctx.font = '16px Arial, sans-serif'; ctx.fillText('JOHN 1:5', 540, 1143);
+    drawChristmasMessage(ctx, message);
     if (name) {
       ctx.fillStyle = '#bcb78e'; ctx.font = 'italic 24px Georgia, serif'; ctx.fillText('With love,', 540, 1231);
       let fontSize = 55; do { ctx.font = `${fontSize}px Georgia, serif`; if (ctx.measureText(name).width < 790) break; fontSize -= 2; } while (fontSize > 25);
@@ -1112,33 +1282,38 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showChristmasCardPreview(card) {
     if (!card || !canCreateCard()) return showKeepsake();
-    const needsAd = !hasAdFreeCardAccess();
-    openModal(modalHeader('check', 'MADE WITH A LITTLE LOVE', 'Your Christmas wish, ready.') + '<div class="card-preview-wrap" id="card-preview"></div>' + `<div class="modal-actions">${button(needsAd ? 'Watch & share card' : 'Share my Christmas card', 'share-card', 'primary', needsAd ? 'play' : 'share')}${button(needsAd ? 'Watch & save to my phone' : 'Save to my phone', 'download-card', 'secondary', needsAd ? 'play' : 'download')}${button('Change tree', 'card-tree-styles:preview', 'secondary', 'palette')}${button('Edit names', 'keepsake', 'secondary')}</div><p class="modal-note">${needsAd ? 'Preview is free. One video per download or share.' : 'Save and share without videos.'}<br>1080 × 1440 PNG</p>`);
+    releaseChristmasExport(cardExportContext);
+    const needsAd = christmasExportNeedsAd();
+    const included = !hasAdFreeCardAccess() && christmasDraft.exportCredits.some(item => !item.reserved);
+    openModal(modalHeader('check', 'MADE WITH A LITTLE LOVE', 'Your Christmas wish, ready.') + '<div class="card-preview-wrap" id="card-preview"></div>' + `<button type="button" class="christmas-copy-entry" data-action="christmas-ai:preview">${icon('star')}<span><strong>Write a personal blessing · AI</strong><small>${hasAdFreeCardAccess() ? 'Included · Write a new version anytime' : christmasDraft.generationCredit ? 'Retry without another video' : 'One video · New words + one download or share'}</small></span>${icon('chevron')}</button><div class="christmas-edit-actions">${button('Edit blessing', 'christmas-edit:preview', 'secondary')}${button('Change tree', 'card-tree-styles:preview', 'secondary', 'palette')}</div>${included ? `<p class="christmas-credit">${christmasDraft.exportCredits.length === 1 ? 'One download or share is included.' : `${christmasDraft.exportCredits.length} downloads or shares are included.`}</p>` : ''}<div class="modal-actions">${button(needsAd ? 'Watch & share card' : 'Share my Christmas card', 'share-card', 'primary', needsAd ? 'play' : 'share')}${button(needsAd ? 'Watch & save to my phone' : 'Save to my phone', 'download-card', 'secondary', needsAd ? 'play' : 'download')}${button('Edit names', 'keepsake', 'secondary')}</div><p class="modal-note">${needsAd ? 'Preview and editing are free. One video per download or share.' : included ? 'Your next download or share needs no video. Editing keeps this benefit.' : 'Save and share without videos.'}<br>1080 × 1440 PNG</p>`);
     cardExportContext = {kind:'christmas', card, shareReady:false};
     $('card-preview').append(card.canvas);
   }
   async function downloadCard(target) {
     const context = cardExportContext;
-    if (!context || context.kind !== 'christmas' || context.shareReady) return;
+    if (!context || context.kind !== 'christmas' || context.shareReady || context.exportInFlight) return;
     const version = modalVersion;
-    await withBusy(target, hasAdFreeCardAccess() ? 'Preparing your card…' : 'Waiting for your video…', async () => {
-      await authorizeCard();
+    await withBusy(target, christmasExportNeedsAd() ? 'Waiting for your video…' : 'Preparing your card…', async () => {
+      const authorization = await authorizeCard();
       if (!$('modal').open || modalVersion !== version || cardExportContext !== context) return;
       saveCardFile(context.card);
+      consumeChristmasExport(authorization.includedExport);
+      showChristmasCardPreview(context.card);
       toast('Your Christmas card is ready to save.');
     });
   }
   async function prepareCardShare(target) {
     const context = cardExportContext;
-    if (!context || context.shareReady) return;
+    if (!context || context.shareReady || context.exportInFlight) return;
     if (context.kind === 'blessing' && statusFor(context.day) !== 'opened') return;
     const version = modalVersion;
-    const needsAd = context.kind === 'christmas' ? !hasAdFreeCardAccess() : blessingShareNeedsAd();
+    const needsAd = context.kind === 'christmas' ? christmasExportNeedsAd() : blessingShareNeedsAd();
     await withBusy(target, needsAd ? 'Waiting for your video…' : 'Preparing to share…', async () => {
-      if (context.kind === 'christmas') await authorizeCard();
-      else if (needsAd) await requestRewardVideo({placement:'blessing-share', day:context.day});
+      const authorization = context.kind === 'christmas' ? await authorizeCard() : {};
+      if (context.kind !== 'christmas' && needsAd) await requestRewardVideo({placement:'blessing-share', day:context.day});
       if (!$('modal').open || modalVersion !== version || cardExportContext !== context) return;
-      showCardShareSheet(context);
+      if (authorization.includedExport) { authorization.includedExport.reserved = true; authorization.includedExport.resetVersion = christmasResetVersion; save(); }
+      showCardShareSheet({...context, includedExport:authorization.includedExport || null});
     });
   }
   function drawBlessingCard(day, name = '', recipient = '') {
@@ -1251,6 +1426,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function returnToCardPreview(context = cardExportContext) {
     if (!context) return;
+    releaseChristmasExport(context);
     if (context.kind === 'christmas') showChristmasCardPreview(context.card);
     else showBlessingCardPreview(context.day,context.card);
   }
@@ -1258,6 +1434,7 @@ window.ADVENT_CONFIG = Object.freeze({
     const context=cardExportContext;
     if(!context?.shareReady)return;
     context.shareReady=false;
+    context.exportInFlight=true;
     const version=modalVersion;
     let completed=false;
     try {
@@ -1265,8 +1442,12 @@ window.ADVENT_CONFIG = Object.freeze({
       if(navigator.canShare?.({files:[file]}) && navigator.share) await navigator.share({files:[file],title:context.kind === 'blessing' ? blessings[context.day-1][0] : 'A little Christmas light',text:'A little light, from me to you.'});
       else {saveCardFile(context.card);toast('Card saved. Share it in your favorite app.');}
       completed=true;
+      consumeChristmasExport(context.includedExport);
+      context.includedExport=null;
     } catch(error) {if(error.name!=='AbortError')toast('Sharing is unavailable. Please use the download button.');}
     finally {
+      context.exportInFlight=false;
+      if (!completed && (!$('modal').open || modalVersion!==version || cardExportContext!==context)) releaseChristmasExport(context);
       if($('modal').open && modalVersion===version && cardExportContext===context) {
         if(completed) returnToCardPreview(context);
         else context.shareReady=true;
@@ -1295,6 +1476,16 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'card-preview') returnToCardPreview();
     else if (action === 'keepsake') showKeepsake();
     else if (action === 'generate') generateCard(target);
+    else if (action === 'christmas-edit') showChristmasMessageEditor(value);
+    else if (action === 'christmas-save-message') saveChristmasMessage(target);
+    else if (action === 'christmas-return') returnChristmasCard(target);
+    else if (action === 'christmas-ai') showChristmasAIComposer(value);
+    else if (action === 'christmas-ai-generate') generateChristmasMessage(target);
+    else if (action === 'christmas-candidate') showChristmasMessageCandidate();
+    else if (action === 'christmas-use-message') acceptChristmasMessage(target);
+    else if (action === 'christmas-discard-message') discardChristmasMessage(target);
+    else if (action === 'christmas-idea' && ['0','1','2'].includes(value)) { $('christmas-intent').value = ['Thank you for being here', 'Missing you from afar', 'Wishing you peace'][Number(value)]; }
+
     else if (action === 'card-tree-styles') showCardTreeStyles(value);
     else if (action === 'tree-done') withBusy(target, 'Returning…', finishTreeSelection);
     else if (action === 'share-card') prepareCardShare(target);
@@ -1316,7 +1507,7 @@ window.ADVENT_CONFIG = Object.freeze({
       setPreviewProgress(count);
       if (stage) showMilestoneCelebration(stage); else closeModal();
     }
-    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('设置已重置'); }
+    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; christmasResetVersion += 1; christmasDraft.message = defaultChristmasMessage; christmasDraft.intent = ''; christmasDraft.candidate = null; christmasDraft.generationCredit = null; christmasDraft.exportCredits = []; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('设置已重置'); }
   }
 
   readSaved();
@@ -1335,7 +1526,7 @@ window.ADVENT_CONFIG = Object.freeze({
   $('tree-style-button').addEventListener('click', () => showTreeStyles());
   document.querySelector('.finale-card').addEventListener('click', showKeepsake);
   $('modal-content').addEventListener('click', handleAction);
-  $('modal-content').addEventListener('input', event => { if (event.target.id === 'ai-tree-prompt') { $('ai-prompt-count').textContent = `${event.target.value.length} / 120`; event.target.removeAttribute('aria-invalid'); $('modal-error')?.remove(); } if (event.target.id === 'preview-progress' && !state.busy) setPreviewProgress(Number(event.target.value)); });
+  $('modal-content').addEventListener('input', event => { if (event.target.id === 'christmas-message' || event.target.id === 'christmas-intent') { const limit=event.target.id === 'christmas-message' ? 240 : 160; const raw=Array.from(event.target.value); if(raw.length > limit) event.target.value=raw.slice(0,limit).join(''); if($('christmas-message-count')) $('christmas-message-count').textContent=Array.from(event.target.value).length; } if (event.target.id === 'ai-tree-prompt') { $('ai-prompt-count').textContent = `${event.target.value.length} / 120`; event.target.removeAttribute('aria-invalid'); $('modal-error')?.remove(); } if (event.target.id === 'preview-progress' && !state.busy) setPreviewProgress(Number(event.target.value)); });
   $('modal-content').addEventListener('change', event => { if(event.target.id==='preview-tree-switches'&&preview&&!state.busy){const used=Number(event.target.value);if(Number.isInteger(used)&&used>=0&&used<=3){state.treeStyleUsage[treeSwitchDayKey()]=used;save();}} if(event.target.id==='preview-ad-outcome'&&preview&&!state.busy&&['filled','no-fill'].includes(event.target.value)){adPreviewOutcome=event.target.value;save();} if (event.target.id === 'preview-membership' && preview && !state.busy) { state.adFree = ['active', 'cancelled'].includes(event.target.value); state.membershipRenews = event.target.value !== 'cancelled'; save(); render(); } if (event.target.id === 'ai-preview-outcome' && ['success', 'failure'].includes(event.target.value)) aiPreviewOutcome = event.target.value; if (event.target.id === 'preview-day' && !state.busy) { setPreviewDay(Number(event.target.value)); showPreviewControls(); } });
   $('modal-content').addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' || event.isComposing || state.busy) return;
