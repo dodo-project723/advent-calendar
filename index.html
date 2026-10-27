@@ -266,7 +266,7 @@ window.ADVENT_CONFIG = Object.freeze({
   let milestoneCleanup = null;
   const blessingCards = new Map();
   const blessingDrafts = new Map();
-  let blessingShareContext = null;
+  let cardExportContext = null;
 
   function getCampaignDay() {
     if (preview) return 5;
@@ -458,7 +458,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function openModal(markup) {
     stopMilestoneCelebration();
-    blessingShareContext = null;
+    cardExportContext = null;
     modalVersion += 1;
     $('modal-content').innerHTML = markup;
     if (!$('modal').open) {
@@ -476,7 +476,7 @@ window.ADVENT_CONFIG = Object.freeze({
     document.documentElement.classList.remove('modal-open');
     if (modalHistory && !fromHistory) { try { history.back(); } catch { /* Some local-file viewers have no browser history. */ } }
     modalHistory = false;
-    blessingShareContext = null;
+    cardExportContext = null;
     if (cardObjectUrl) { URL.revokeObjectURL(cardObjectUrl); cardObjectUrl = null; }
   }
   function stopMilestoneCelebration() {
@@ -826,7 +826,7 @@ window.ADVENT_CONFIG = Object.freeze({
       openModal(modalHeader('gift', `DECEMBER ${day}`, 'A little light for today.', firstFree ? 'Your first daily blessing is free.' : needsAd ? 'Watch one short video to receive today’s blessing.' : 'Included with your ad-free access.') + `<div class="modal-actions">${button(needsAd ? 'Watch & receive blessing' : firstFree ? 'Receive blessing · Free' : 'Receive blessing', `claim:${day}`, 'primary', needsAd ? 'play' : 'gift')}</div>`);
       return;
     }
-    openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Download card · Free', `download-blessing:${day}`, 'primary', 'download')}${button(blessingShareNeedsAd() ? 'Watch & share card' : 'Share card', `share:${day}`, 'secondary', blessingShareNeedsAd() ? 'play' : 'share')}${preview && day === state.today && day < 24 ? button('体验下一天', `preview-day:${day + 1}`, 'secondary', 'arrow') : ''}</div><p class="modal-note">${blessingShareNeedsAd() ? 'Free to download · One video each time you share' : 'Downloads and sharing included · No video needed'}</p>`);
+    openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Personalize my card', `personalize-blessing:${day}`, 'primary', 'share')}${preview && day === state.today && day < 24 ? button('体验下一天', `preview-day:${day + 1}`, 'secondary', 'arrow') : ''}</div><p class="modal-note">Add optional names first, then preview, download or share.</p>`);
   }
   async function requestRewardVideo(details) {
     if (preview) return previewVideo();
@@ -942,7 +942,7 @@ window.ADVENT_CONFIG = Object.freeze({
     openModal(modalHeader('star', `THE CANDLE OF ${candle.name.toUpperCase()}`, lit ? `${candle.name} is glowing.` : `A little closer to ${candle.name.toLowerCase()}.`, lit ? candle.description : `Open ${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} to light this candle. Every day you return adds a little more light to your tree.`) + `<div class="modal-actions">${button('Back to my tree', 'close')}${!lit && !isMember() ? button('Unwrap any date with a Pass', 'pass', 'secondary') : ''}</div>`);
   }
   function showRules() {
-    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Download received blessing cards for free. Watch one video each time you share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
+    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Choose to download for free or watch one video to share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
   }
   function showPreviewControls() {
     if (!preview) return;
@@ -977,7 +977,7 @@ window.ADVENT_CONFIG = Object.freeze({
       openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${preview ? button('体验圣诞夜贺卡', 'preview-eve', 'secondary') : button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
       return;
     }
-    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button(hasAdFreeCardAccess() ? currentCard ? 'Update my Christmas card' : 'Create my Christmas card' : currentCard ? 'Watch & update my card' : 'Watch & create my card', 'generate', 'primary', hasAdFreeCardAccess() ? 'star' : 'play')}</div><p class="modal-note">${hasAdFreeCardAccess() ? 'Create, save and share without videos.' : 'One short video each time you create or update your card.'}</p>`);
+    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'A little light, from you to someone you love.') + `<label class="name-label" for="card-recipient">To · Recipient name (optional)</label><input class="name-input" id="card-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="recipient-hint"><p class="name-hint" id="recipient-hint">Up to 24 characters. Leave blank for a card for everyone.</p><label class="name-label" for="card-name">From · Your name (optional)</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'These names will be used to create your card.' : 'These names stay on this device.'}</p>` + `<div class="modal-actions">${button('Preview my card', 'generate', 'primary', 'star')}</div><p class="modal-note">Both names are optional. Preview first, then choose to save or share.</p>`);
     $('card-recipient').value = state.recipient;
     $('card-name').value = state.name;
   }
@@ -989,15 +989,13 @@ window.ADVENT_CONFIG = Object.freeze({
     const recipient = cleanCardName($('card-recipient')?.value);
     const version = modalVersion;
     await withBusy(target, 'Adding a little Christmas magic…', async () => {
-      const cardReward = await authorizeCard();
-      state.name = name; state.recipient = recipient; save();
-      const canvas = config.cardMode === 'ai' && !preview ? await generateAICard(name, recipient, cardReward) : await drawCard(name, recipient);
+      const canvas = config.cardMode === 'ai' && !preview ? await generateAICard(name, recipient) : await drawCard(name, recipient);
       const blob = await new Promise((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Unable to create card')), 'image/png'));
-      currentCard = { canvas, blob, filename: `a-little-light-christmas-${campaignYear}.png` };
       if (!$('modal').open || modalVersion !== version) return;
-      openModal(modalHeader('check', 'MADE WITH A LITTLE LOVE', 'Your Christmas wish, ready.') + '<div class="card-preview-wrap" id="card-preview"></div>' + `<div class="modal-actions">${button('Share my Christmas card', 'share-card', 'primary', 'share')}${button('Save to my phone', 'download-card', 'secondary', 'download')}${button('Edit names', 'keepsake', 'secondary')}</div><p class="modal-note">1080 × 1440 PNG · Made to keep, made to share.</p>`);
+      state.name = name; state.recipient = recipient; save();
+      currentCard = { canvas, blob, filename: `a-little-light-christmas-${campaignYear}.png` };
       canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `Christmas greeting card${recipient ? ` to ${recipient}` : ''}${name ? ` from ${name}` : ''}, with your ${getTreeStyle(state.treeStyle).name} Christmas tree`);
-      $('card-preview').append(canvas);
+      showChristmasCardPreview(currentCard);
       announce('Your Christmas card is ready to save or share.');
     });
   }
@@ -1009,14 +1007,14 @@ window.ADVENT_CONFIG = Object.freeze({
     }
     if (hasAdFreeCardAccess()) return {};
     const reward=await requestRewardVideo({placement:'christmas-card'});
-    if(!preview&&config.apiBase&&config.cardMode!=='ai') {
+    if(!preview&&config.apiBase) {
       const authorization=await request('/cards/authorize',reward);
       if(authorization.allowed!==true)throw new Error('Card access was not granted');
     }
     return reward;
   }
-  async function generateAICard(name, recipient, cardReward) {
-    const data = await request('/cards', {name,recipient,treeTier:tier(),treeStyle:state.treeStyle,...cardReward});
+  async function generateAICard(name, recipient) {
+    const data = await request('/cards', {name,recipient,treeTier:tier(),treeStyle:state.treeStyle});
     const url = new URL(data.imageUrl, location.origin);
     if (url.protocol !== 'https:' && url.origin !== location.origin) throw new Error('Invalid card URL');
     const image = await new Promise((resolve, reject) => {
@@ -1069,20 +1067,36 @@ window.ADVENT_CONFIG = Object.freeze({
     }
     return canvas;
   }
-  function downloadCard() {
-    if (!currentCard) return;
-    if (cardObjectUrl) URL.revokeObjectURL(cardObjectUrl);
-    cardObjectUrl = URL.createObjectURL(currentCard.blob);
-    const link = document.createElement('a'); link.href = cardObjectUrl; link.download = currentCard.filename; document.body.append(link); link.click(); link.remove();
-    toast('Your Christmas card is ready to save.');
+  function showChristmasCardPreview(card) {
+    if (!card || !canCreateCard()) return showKeepsake();
+    const needsAd = !hasAdFreeCardAccess();
+    openModal(modalHeader('check', 'MADE WITH A LITTLE LOVE', 'Your Christmas wish, ready.') + '<div class="card-preview-wrap" id="card-preview"></div>' + `<div class="modal-actions">${button(needsAd ? 'Watch & share card' : 'Share my Christmas card', 'share-card', 'primary', needsAd ? 'play' : 'share')}${button(needsAd ? 'Watch & save to my phone' : 'Save to my phone', 'download-card', 'secondary', needsAd ? 'play' : 'download')}${button('Edit names', 'keepsake', 'secondary')}</div><p class="modal-note">${needsAd ? 'Preview is free. One video per download or share.' : 'Save and share without videos.'}<br>1080 × 1440 PNG</p>`);
+    cardExportContext = {kind:'christmas', card, shareReady:false};
+    $('card-preview').append(card.canvas);
   }
-  async function shareCard() {
-    if (!currentCard) return;
-    const file = new File([currentCard.blob], currentCard.filename, { type: 'image/png' });
-    try {
-      if (navigator.canShare?.({ files: [file] }) && navigator.share) await navigator.share({ files: [file], title: 'A little Christmas light', text: 'May your heart be full of light. Merry Christmas!' });
-      else { downloadCard(); toast('Card saved for sharing in your favorite app.'); }
-    } catch (error) { if (error.name !== 'AbortError') toast('Sharing is unavailable here. Use Save to my phone instead.'); }
+  async function downloadCard(target) {
+    const context = cardExportContext;
+    if (!context || context.kind !== 'christmas' || context.shareReady) return;
+    const version = modalVersion;
+    await withBusy(target, hasAdFreeCardAccess() ? 'Preparing your card…' : 'Waiting for your video…', async () => {
+      await authorizeCard();
+      if (!$('modal').open || modalVersion !== version || cardExportContext !== context) return;
+      saveCardFile(context.card);
+      toast('Your Christmas card is ready to save.');
+    });
+  }
+  async function prepareCardShare(target) {
+    const context = cardExportContext;
+    if (!context || context.shareReady) return;
+    if (context.kind === 'blessing' && statusFor(context.day) !== 'opened') return;
+    const version = modalVersion;
+    const needsAd = context.kind === 'christmas' ? !hasAdFreeCardAccess() : blessingShareNeedsAd();
+    await withBusy(target, needsAd ? 'Waiting for your video…' : 'Preparing to share…', async () => {
+      if (context.kind === 'christmas') await authorizeCard();
+      else if (needsAd) await requestRewardVideo({placement:'blessing-share', day:context.day});
+      if (!$('modal').open || modalVersion !== version || cardExportContext !== context) return;
+      showCardShareSheet(context);
+    });
   }
   function drawBlessingCard(day, name = '', recipient = '') {
     const [title, message, reference] = blessings[day - 1];
@@ -1146,53 +1160,76 @@ window.ADVENT_CONFIG = Object.freeze({
     cardObjectUrl=URL.createObjectURL(card.blob);
     const link=document.createElement('a');link.href=cardObjectUrl;link.download=card.filename;document.body.append(link);link.click();link.remove();
   }
-  async function downloadBlessing(day,target) {
-    if (statusFor(day)!=='opened') return;
-    await withBusy(target,'Preparing your card…',async()=>{
-      saveCardFile(await getBlessingCard(day));toast('Blessing card downloaded. No video needed.');announce(`Day ${day} card downloaded.`);
-    });
+  function downloadBlessing(day) {
+    const context = cardExportContext;
+    if (statusFor(day) !== 'opened' || !context || context.kind !== 'blessing' || context.day !== day || context.shareReady) return;
+    saveCardFile(context.card);
+    toast('Blessing card downloaded. No video needed.');
+    announce(`Day ${day} card downloaded.`);
   }
   function showBlessingComposer(day) {
     if (statusFor(day)!=='opened') return;
     const draft=blessingDrafts.get(day)||{name:state.name,recipient:''};
-    openModal(modalHeader('share',`DECEMBER ${day}`,'Share a little light.','Add a name, or share the blessing as it is.')+`<label class="name-label" for="blessing-recipient">To · Recipient name (optional)</label><input class="name-input" id="blessing-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="blessing-names-hint"><label class="name-label" for="blessing-name">From · Your name (optional)</label><input class="name-input" id="blessing-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="blessing-names-hint"><p class="name-hint" id="blessing-names-hint">Up to 24 characters each. Both names are optional.</p><div class="modal-actions">${button(blessingShareNeedsAd()?'Watch & preview share card':'Preview share card',`prepare-blessing-share:${day}`,'primary',blessingShareNeedsAd()?'play':'share')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">${blessingShareNeedsAd()?'One short video each time you create or update a share card.':'Personalize and share without videos.'}</p>`);
+    openModal(modalHeader('share',`DECEMBER ${day}`,'Make it personal.','Add optional names, or leave both blank.')+`<label class="name-label" for="blessing-recipient">To · Recipient name (optional)</label><input class="name-input" id="blessing-recipient" type="text" maxlength="24" autocomplete="off" enterkeyhint="next" placeholder="e.g. Alex" aria-describedby="blessing-names-hint"><label class="name-label" for="blessing-name">From · Your name (optional)</label><input class="name-input" id="blessing-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="blessing-names-hint"><p class="name-hint" id="blessing-names-hint">Up to 24 characters each. Both names are optional.</p><div class="modal-actions">${button('Preview my card',`prepare-blessing-card:${day}`,'primary','share')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">Preview first, then choose to download or share.</p>`);
     $('blessing-recipient').value=draft.recipient;
     $('blessing-name').value=draft.name;
   }
-  function showBlessingShareSheet(day,card) {
-    openModal(modalHeader('share',`DECEMBER ${day}`,'Share a little light.')+'<div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div>'+`<div class="share-destinations">${preview ? ['Messages','WhatsApp','More'].map((name,index)=>`<button type="button" data-action="preview-blessing-share:${index}"><span>${icon('share')}</span>${name}</button>`).join('') : button('Choose an app','native-blessing-share','primary','share')}</div><div class="modal-actions">${button('Edit names',`share:${day}`,'secondary')}${button('Back to my blessing',`show-blessing:${day}`,'secondary')}</div><p class="modal-note">${preview?'分享面板模拟 · 不会发送给他人':'Your blessing card is ready to share.'}</p>`);
-    blessingShareContext={day,card};$('blessing-share-preview').append(card.canvas);
+  function showBlessingCardPreview(day,card) {
+    if (statusFor(day) !== 'opened') return;
+    const needsAd = blessingShareNeedsAd();
+    openModal(modalHeader('check',`DECEMBER ${day}`,'Your blessing, ready.')+'<div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div>'+`<div class="modal-actions">${button('Download card · Free',`download-blessing:${day}`,'primary','download')}${button(needsAd ? 'Watch & share card' : 'Share card','share-card','secondary',needsAd ? 'play' : 'share')}${button('Edit names',`personalize-blessing:${day}`,'secondary')}</div><p class="modal-note">${needsAd ? 'Download for free. One video each time you share.' : 'Download and share without videos.'}</p>`);
+    cardExportContext={kind:'blessing',day,card,shareReady:false};
+    $('blessing-share-preview').append(card.canvas);
   }
-  async function shareBlessing(day,target) {
-    if (statusFor(day)!=='opened') return;
-    const name=cleanCardName($('blessing-name')?.value);
-    const recipient=cleanCardName($('blessing-recipient')?.value);
+  async function prepareBlessingCard(day,target) {
+    if (statusFor(day)!=='opened' || !$('blessing-name') || !$('blessing-recipient')) return;
+    const name=cleanCardName($('blessing-name').value);
+    const recipient=cleanCardName($('blessing-recipient').value);
     const version=modalVersion;
-    await withBusy(target,blessingShareNeedsAd()?'Waiting for your video…':'Preparing to share…',async()=>{
-      if(blessingShareNeedsAd()) await requestRewardVideo({placement:'blessing-share',day});
-      if(!$('modal').open||modalVersion!==version)return;
+    await withBusy(target,'Preparing your card…',async()=>{
       const card=await getBlessingCard(day,name,recipient);
-      if($('modal').open&&modalVersion===version){
-        blessingDrafts.set(day,{name,recipient});
-        state.name=name;save();
-        showBlessingShareSheet(day,card);
-      }
+      if(!$('modal').open || modalVersion!==version)return;
+      blessingDrafts.set(day,{name,recipient});
+      state.name=name;save();
+      showBlessingCardPreview(day,card);
     });
   }
-  function previewBlessingShare(index) {
-    if(!preview||!blessingShareContext||![0,1,2].includes(index))return;
-    const {day}=blessingShareContext;
-    const destination=['Messages','WhatsApp','More'][index];
-    openModal(modalHeader('check','A LITTLE LIGHT SHARED','Your light is on its way.',`Shared via ${destination}.`)+`<div class="modal-actions">${button('Back to my blessing',`show-blessing:${day}`,'primary')}</div><p class="modal-note">原型演示 · 未实际发送</p>`);
+  function showCardShareSheet(context) {
+    const isBlessing = context.kind === 'blessing';
+    openModal(modalHeader('share',isBlessing ? `DECEMBER ${context.day}` : 'YOUR CHRISTMAS WISH','Choose where to share.')+'<div class="card-preview-wrap blessing-share-preview" id="share-ready-preview"></div>'+`<div class="share-destinations">${preview ? ['Messages','WhatsApp','More'].map((name,index)=>`<button type="button" data-action="preview-card-share:${index}"><span>${icon('share')}</span>${name}</button>`).join('') : button('Choose an app','native-card-share','primary','share')}</div><div class="modal-actions">${button('Back to my card','card-preview','secondary')}</div><p class="modal-note">${preview ? '分享面板模拟 · 不会发送给他人' : 'Ready to share. No further video needed for this share.'}</p>`);
+    cardExportContext={...context,shareReady:true};
+    $('share-ready-preview').append(context.card.canvas);
   }
-  async function nativeBlessingShare() {
-    if(!blessingShareContext)return;
-    const {day,card}=blessingShareContext;
-    const file=new File([card.blob],card.filename,{type:'image/png'});
+  function returnToCardPreview(context = cardExportContext) {
+    if (!context) return;
+    if (context.kind === 'christmas') showChristmasCardPreview(context.card);
+    else showBlessingCardPreview(context.day,context.card);
+  }
+  function previewCardShare(index) {
+    const context=cardExportContext;
+    if(!preview || !context?.shareReady || ![0,1,2].includes(index))return;
+    context.shareReady=false;
+    const destination=['Messages','WhatsApp','More'][index];
+    openModal(modalHeader('check','A LITTLE LIGHT SHARED','Your light is on its way.',`Shared via ${destination}.`)+`<div class="modal-actions">${button(context.kind === 'blessing' ? 'Back to my blessing' : 'Make another card',context.kind === 'blessing' ? `show-blessing:${context.day}` : 'keepsake','primary')}</div><p class="modal-note">原型演示 · 未实际发送</p>`);
+  }
+  async function nativeCardShare() {
+    const context=cardExportContext;
+    if(!context?.shareReady)return;
+    context.shareReady=false;
+    const version=modalVersion;
+    let completed=false;
     try {
-      if(navigator.canShare?.({files:[file]})&&navigator.share)await navigator.share({files:[file],title:blessings[day-1][0],text:'A little light, from me to you.'});
-      else {saveCardFile(card);toast('Card saved. Share it in your favorite app.');}
-    } catch(error) {if(error.name!=='AbortError')errorMessage('Sharing is unavailable. You can download this card for free.');}
+      const file=new File([context.card.blob],context.card.filename,{type:'image/png'});
+      if(navigator.canShare?.({files:[file]}) && navigator.share) await navigator.share({files:[file],title:context.kind === 'blessing' ? blessings[context.day-1][0] : 'A little Christmas light',text:'A little light, from me to you.'});
+      else {saveCardFile(context.card);toast('Card saved. Share it in your favorite app.');}
+      completed=true;
+    } catch(error) {if(error.name!=='AbortError')toast('Sharing is unavailable. Please use the download button.');}
+    finally {
+      if($('modal').open && modalVersion===version && cardExportContext===context) {
+        if(completed) returnToCardPreview(context);
+        else context.shareReady=true;
+      }
+    }
   }
   function handleAction(event) {
     const target = event.target.closest('[data-action]');
@@ -1208,16 +1245,17 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'resume-renewal' && preview) { state.membershipRenews = true; save(); render(); showMembership(); }
     else if (action === 'claim') claimDay(Number(value), target);
     else if (action === 'catchup') claimDay(Number(value), target, true);
-    else if (action === 'share') showBlessingComposer(Number(value));
-    else if (action === 'prepare-blessing-share') shareBlessing(Number(value), target);
-    else if (action === 'download-blessing') downloadBlessing(Number(value), target);
+    else if (action === 'personalize-blessing') showBlessingComposer(Number(value));
+    else if (action === 'prepare-blessing-card') prepareBlessingCard(Number(value), target);
+    else if (action === 'download-blessing') downloadBlessing(Number(value));
     else if (action === 'show-blessing') showDay(Number(value));
-    else if (action === 'preview-blessing-share') previewBlessingShare(Number(value));
-    else if (action === 'native-blessing-share') nativeBlessingShare();
+    else if (action === 'preview-card-share') previewCardShare(Number(value));
+    else if (action === 'native-card-share') nativeCardShare();
+    else if (action === 'card-preview') returnToCardPreview();
     else if (action === 'keepsake') showKeepsake();
     else if (action === 'generate') generateCard(target);
-    else if (action === 'share-card') shareCard();
-    else if (action === 'download-card') downloadCard();
+    else if (action === 'share-card') prepareCardShare(target);
+    else if (action === 'download-card') downloadCard(target);
     else if (action === 'pick-style') showTreeStyles(value);
     else if (action === 'tree-styles') showTreeStyles();
     else if (action === 'ai-tree') showAIComposer();
@@ -1262,7 +1300,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (event.target.id === 'card-recipient') { event.preventDefault(); $('card-name').focus(); }
     else if (event.target.id === 'card-name') { event.preventDefault(); generateCard(document.querySelector('[data-action="generate"]')); }
     else if (event.target.id === 'blessing-recipient') { event.preventDefault(); $('blessing-name').focus(); }
-    else if (event.target.id === 'blessing-name') { event.preventDefault(); const target=document.querySelector('[data-action^="prepare-blessing-share:"]'); if(target)shareBlessing(Number(target.dataset.action.split(':')[1]),target); }
+    else if (event.target.id === 'blessing-name') { event.preventDefault(); const target=document.querySelector('[data-action^="prepare-blessing-card:"]'); if(target)prepareBlessingCard(Number(target.dataset.action.split(':')[1]),target); }
   });
   $('modal-close').addEventListener('click', () => { if (!state.busy) closeModal(); });
   $('modal').addEventListener('cancel', (event) => { event.preventDefault(); if (!state.busy) closeModal(); });
