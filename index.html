@@ -79,6 +79,7 @@ dialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:480px;ma
 @keyframes keepsake-breathe{0%,100%{opacity:.28}50%{opacity:.9}}
 .card-tree-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:7px 12px;margin-top:20px;text-align:left;border:1px solid #c9b77c40;border-radius:12px;background:#10251b;color:var(--ink)}.card-tree-mini{flex:none;width:58px;height:62px}.card-tree-mini svg{width:100%;height:100%;display:block}.card-tree-choice-copy{flex:1;min-width:0}.card-tree-choice-copy small{display:block;color:#a7b79d;font-size:10px}.card-tree-choice-copy strong{display:block;font:19px var(--serif);color:#e9d7a6;margin:2px 0}.card-tree-choice-copy span{color:#c9bb8b;font-size:11px}.card-tree-choice>.icon{color:var(--gold);width:18px}
 
+.ad-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:23px;height:16px;padding:0 4px;border:1px solid currentColor;border-radius:4px;font:700 9px/1 Arial,sans-serif;letter-spacing:.35px;opacity:.85}
 /* Card editing stays in one place; the preview is focused on the card. */
 .card-studio .modal-title{font-size:27px;margin:0 20px 20px;line-height:1.2}.card-studio .name-label{margin:0 0 7px}.card-studio .name-label span{color:#94a28c;font-size:10px;margin-left:5px}.card-name-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}.card-name-fields>div{min-width:0}.card-name-fields .name-input{padding:10px 12px}.card-field-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}.card-field-heading .name-label{margin:0}.card-field-heading .text-button{font-size:11px;padding:6px 0;gap:5px}.card-field-heading .icon{width:14px;height:14px}.card-studio .christmas-message-input{min-height:128px;resize:vertical;line-height:1.65}.card-studio .name-hint{font-size:9px;text-align:right;margin:5px 0 0}.card-studio .card-tree-choice{min-height:62px;margin-top:15px;padding:4px 10px;gap:9px}.card-studio .card-tree-mini{width:43px;height:49px}.card-studio .card-tree-choice-copy strong{font-size:17px}.card-studio .modal-actions{margin-top:18px}.card-studio .text-return{display:flex;justify-content:center;margin:10px auto 0;min-height:44px;color:#aebba1;font-size:12px;background:transparent;padding:8px 14px}.card-studio .ai-suggestions{margin-top:12px;gap:6px}.card-studio .ai-suggestions button{font-size:10px;padding:8px 10px;min-height:44px}.card-studio.card-view .modal-title{font-size:25px;margin-bottom:15px}.card-view .card-preview-wrap{max-width:210px;width:min(210px,35dvh);margin:0 auto 4px}.card-view .card-edit-link{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;margin:auto;background:transparent;color:#d0bd89;font-size:12px}.card-view .card-edit-link .icon{width:14px;height:14px}.card-view .card-export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.card-view .card-export-actions button{min-width:0}.christmas-message-copy{white-space:pre-wrap;overflow-wrap:anywhere;font:17px/1.8 var(--serif);color:#ece1bf;margin:0}.christmas-message-box{padding:18px;border:1px solid #c6b37b40;border-radius:12px;background:#10251b;margin-top:18px}.christmas-previous{margin-top:18px;color:#a9b69d;font-size:11px}.christmas-previous p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8}
 @media(max-width:359px){.card-name-fields{gap:9px}.card-studio .modal-title{font-size:25px}.card-name-fields .name-input{padding:10px}}
@@ -687,8 +688,8 @@ window.ADVENT_CONFIG = Object.freeze({
   function modalHeader(glyph, eyebrow, title, description = '') {
     return `<div class="modal-emblem">${icon(glyph)}</div><span class="modal-eyebrow">${eyebrow}</span><h2 id="modal-title" class="modal-title">${title}</h2>${description ? `<p class="modal-description">${description}</p>` : ''}`;
   }
-  function button(label, action, kind = 'primary', glyph = '') {
-    return `<button type="button" class="${kind}-button" data-action="${action}">${glyph ? icon(glyph) : ''}${label}</button>`;
+  function button(label, action, kind = 'primary', glyph = '', requiresAd = false) {
+    return `<button type="button" class="${kind}-button" data-action="${action}">${glyph ? icon(glyph) : ''}${label}${requiresAd ? '<span class="ad-badge" aria-label="Advertisement">AD</span>' : ''}</button>`;
   }
   function errorMessage(message) {
     if (!$('modal').open) return toast(message);
@@ -749,11 +750,11 @@ window.ADVENT_CONFIG = Object.freeze({
     const current = selected === state.treeStyle;
     const needsVideo = treeSwitchAccess(selected) === 'video';
     const accessLabel = item => item.id === state.treeStyle ? icon('check') + 'Current' : state.unlockedTreeStyles.includes(item.id) ? 'Unlocked' : 'Available';
-    openModal(`<section class="card-studio"><h2 id="modal-title" class="modal-title">Choose your tree</h2><button type="button" class="ai-tree-entry" data-action="ai-tree"><span class="ai-entry-icon">${icon('star')}</span><span><strong>Create your own tree <em>AI</em></strong></span>${icon('chevron')}</button><div class="tree-style-options" role="group" aria-label="Christmas tree styles">${options.map(item => `<button type="button" class="tree-style-option${item.id === 'custom' ? ' is-custom' : ''}" data-action="pick-style:${item.id}" aria-pressed="${item.id === selected}"><span class="style-thumbnail" data-look="${item.id}">${treeStyleThumbnail(item.id)}</span><span class="style-name">${item.name}</span><span class="style-access">${accessLabel(item)}</span></button>`).join('')}</div><div class="modal-actions">${button(current ? 'Keep this tree' : `Use ${style.name}`, current ? 'tree-done' : `${unlocked ? 'use-tree' : 'unlock-tree'}:${selected}`, 'primary', current ? 'check' : 'palette')}${cardTreeFlow && !current ? button('Back', 'tree-done', 'secondary') : ''}</div></section>`, true);
+    openModal(`<section class="card-studio"><h2 id="modal-title" class="modal-title">Choose your tree</h2><button type="button" class="ai-tree-entry" data-action="ai-tree"><span class="ai-entry-icon">${icon('star')}</span><span><strong>Create your own tree <em>AI</em></strong></span>${icon('chevron')}</button><div class="tree-style-options" role="group" aria-label="Christmas tree styles">${options.map(item => `<button type="button" class="tree-style-option${item.id === 'custom' ? ' is-custom' : ''}" data-action="pick-style:${item.id}" aria-pressed="${item.id === selected}"><span class="style-thumbnail" data-look="${item.id}">${treeStyleThumbnail(item.id)}</span><span class="style-name">${item.name}</span><span class="style-access">${accessLabel(item)}</span></button>`).join('')}</div><div class="modal-actions">${button(current ? 'Keep this tree' : `Use ${style.name}`, current ? 'tree-done' : `${unlocked ? 'use-tree' : 'unlock-tree'}:${selected}`, 'primary', current ? 'check' : 'palette', !current && needsVideo)}${cardTreeFlow && !current ? button('Back', 'tree-done', 'secondary') : ''}</div></section>`, true);
   }
   const aiSuggestions = ['Pink branches, pearl ornaments', 'Icy blue, snowy branches', 'Purple aurora, crystal ornaments'];
   function showAIComposer(prompt = aiTreeDraft?.prompt || state.customTree?.prompt || '') {
-    openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Imagine your tree</h2><label class="name-label" for="ai-tree-prompt">What would you like?</label><textarea id="ai-tree-prompt" class="name-input ai-prompt" rows="3" maxlength="120" placeholder="A pink tree with pearl ornaments…" aria-describedby="ai-prompt-hint"></textarea><div class="ai-suggestions" aria-label="Tree style ideas">${aiSuggestions.map((text, index) => `<button type="button" data-action="ai-idea:${index}">${['Pink & pearls', 'Snow & ice', 'Aurora glow'][index]}</button>`).join('')}</div><p id="ai-prompt-hint" class="name-hint">Colors, decorations, a little imagination. <span id="ai-prompt-count">${prompt.length} / 120</span></p><div class="modal-actions">${button('Generate my tree', 'ai-generate', 'primary', 'star')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`, true);
+    openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Imagine your tree</h2><label class="name-label" for="ai-tree-prompt">What would you like?</label><textarea id="ai-tree-prompt" class="name-input ai-prompt" rows="3" maxlength="120" placeholder="A pink tree with pearl ornaments…" aria-describedby="ai-prompt-hint"></textarea><div class="ai-suggestions" aria-label="Tree style ideas">${aiSuggestions.map((text, index) => `<button type="button" data-action="ai-idea:${index}">${['Pink & pearls', 'Snow & ice', 'Aurora glow'][index]}</button>`).join('')}</div><p id="ai-prompt-hint" class="name-hint">Colors, decorations, a little imagination. <span id="ai-prompt-count">${prompt.length} / 120</span></p><div class="modal-actions">${button('Generate my tree', 'ai-generate', 'primary', 'star', !aiVideoCredit && !isAdFree())}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`, true);
     $('ai-tree-prompt').value = prompt;
   }
   function makePrototypeTree(prompt) {
@@ -789,8 +790,9 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showAITreeResult() {
     if (!aiTreeDraft) return showAIComposer();
-    const needsVideo = treeSwitchAccess('custom', aiTreeDraft.videoAuthorized) === 'video';
-    openModal(`<span class="modal-eyebrow">IMAGINED BY YOU</span><h2 id="modal-title" class="modal-title">Your tree is ready</h2><div class="ai-tree-result">${treeStyleThumbnail('custom', aiTreeDraft)}</div><p class="ai-result-prompt">“${escapeHTML(aiTreeDraft.prompt)}”</p><div class="modal-actions">${button('Use my tree', 'ai-use', 'primary', 'check')}${button('Try another look', 'ai-tree', 'secondary')}</div>`, true);
+    const unchanged = state.treeStyle === 'custom' && ['prompt','palette','decoration'].every(key => state.customTree?.[key] === aiTreeDraft[key]);
+    const needsVideo = !unchanged && treeSwitchAccess('custom', aiTreeDraft.videoAuthorized) === 'video';
+    openModal(`<span class="modal-eyebrow">IMAGINED BY YOU</span><h2 id="modal-title" class="modal-title">Your tree is ready</h2><div class="ai-tree-result">${treeStyleThumbnail('custom', aiTreeDraft)}</div><p class="ai-result-prompt">“${escapeHTML(aiTreeDraft.prompt)}”</p><div class="modal-actions">${button('Use my tree', 'ai-use', 'primary', 'check', needsVideo)}${button('Try another look', 'ai-tree', 'secondary')}</div>`, true);
   }
   async function useAITree(target) {
     if (!aiTreeDraft) return;
@@ -850,7 +852,7 @@ window.ADVENT_CONFIG = Object.freeze({
       return;
     }
     if (status === 'missed') {
-      openModal(modalHeader('restore', `DECEMBER ${day}`, 'There’s still time for a little light.', isAdFree() ? `Your Day ${day} blessing is included with your ad-free access.` : 'Watch one short video to receive this missed blessing.') + `<div class="modal-actions">${button(isAdFree() ? 'Receive blessing' : 'Watch & receive blessing', `catchup:${day}`, 'primary', isAdFree() ? 'gift' : 'play')}${button(`Unwrap any date · ${price}`, 'pass', 'secondary')}</div><p class="modal-note">${isAdFree() ? 'No video needed with your membership.' : 'One video opens one missed blessing.'}</p>`);
+      openModal(modalHeader('restore', `DECEMBER ${day}`, 'There’s still time for a little light.', isAdFree() ? `Your Day ${day} blessing is included with your ad-free access.` : 'Watch one short video to receive this missed blessing.') + `<div class="modal-actions">${button('Receive blessing', `catchup:${day}`, 'primary', 'gift', !hasBlessingAdFreeAccess())}${button(`Unwrap any date · ${price}`, 'pass', 'secondary')}</div><p class="modal-note">${isAdFree() ? 'No video needed with your membership.' : 'One video opens one missed blessing.'}</p>`);
       return;
     }
     if (status === 'available' || (status === 'today' && isMember())) {
@@ -860,7 +862,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (status === 'today') {
       const needsAd = dailyClaimNeedsAd();
       const firstFree = !state.firstDailyClaimUsed && !hasBlessingAdFreeAccess();
-      openModal(modalHeader('gift', `DECEMBER ${day}`, 'A little light for today.', firstFree ? 'Your first daily blessing is free.' : needsAd ? 'Watch one short video to receive today’s blessing.' : 'Included with your ad-free access.') + `<div class="modal-actions">${button(needsAd ? 'Watch & receive blessing' : firstFree ? 'Receive blessing · Free' : 'Receive blessing', `claim:${day}`, 'primary', needsAd ? 'play' : 'gift')}</div>`);
+      openModal(modalHeader('gift', `DECEMBER ${day}`, 'A little light for today.', firstFree ? 'Your first daily blessing is free.' : needsAd ? 'Watch one short video to receive today’s blessing.' : 'Included with your ad-free access.') + `<div class="modal-actions">${button(firstFree ? 'Receive blessing · Free' : 'Receive blessing', `claim:${day}`, 'primary', 'gift', needsAd)}</div>`);
       return;
     }
     openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Personalize my card', `personalize-blessing:${day}`, 'primary', 'share')}${button('Back to my tree', 'close', 'secondary')}</div>`);
@@ -926,7 +928,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (adPreviewOutcome === 'no-fill') return {adOutcome:'no-fill'};
     const video = document.createElement('div');
     video.className = 'video-preview';
-    video.innerHTML = `<span class="ad-label">ADVERTISEMENT</span><span>Share a little light.</span><span class="demo-video-count" role="status" aria-live="polite">Continue in 3s</span><button type="button" class="text-button" data-action="cancel-video">Cancel video</button>`;
+    video.innerHTML = `<span class="ad-label">AD</span><span>Share a little light.</span><span class="demo-video-count" role="status" aria-live="polite">Continue in 3s</span><button type="button" class="text-button" data-action="cancel-video">Cancel video</button>`;
     $('modal-content').append(video);
     try {
       await new Promise((resolve, reject) => {
@@ -1093,7 +1095,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (origin === 'composer') captureChristmasNames();
     christmasEditOrigin = origin === 'composer' ? 'composer' : 'preview';
     const retry = !!christmasDraft.generationCredit;
-    openModal(`<section class="card-studio"><h2 id="modal-title" class="modal-title">A personal blessing</h2><label class="name-label" for="christmas-intent">What would you like to say? <span>Optional</span></label><textarea class="name-input christmas-message-input" id="christmas-intent"${retry ? ' readonly' : ''} maxlength="320" placeholder="A thought, a memory, or a little thank you…" aria-describedby="christmas-intent-hint"></textarea><p id="christmas-intent-hint" class="name-hint">160 characters max</p><div class="ai-suggestions" aria-label="Blessing ideas">${['Thank you for being here', 'Missing you from afar', 'Wishing you peace'].map((text,index)=>`<button type="button" data-action="christmas-idea:${index}"${retry ? ' disabled' : ''}>${['Thank you','Missing you','Peace & warmth'][index]}</button>`).join('')}</div><div class="modal-actions">${button(retry ? 'Try again' : 'Generate blessing', 'christmas-ai-generate', 'primary', 'star')}${christmasDraft.candidate ? button('View previous draft', 'christmas-candidate', 'secondary') : ''}</div><button type="button" class="text-return" data-action="christmas-return">Back</button></section>`);
+    openModal(`<section class="card-studio"><h2 id="modal-title" class="modal-title">A personal blessing</h2><label class="name-label" for="christmas-intent">What would you like to say? <span>Optional</span></label><textarea class="name-input christmas-message-input" id="christmas-intent"${retry ? ' readonly' : ''} maxlength="320" placeholder="A thought, a memory, or a little thank you…" aria-describedby="christmas-intent-hint"></textarea><p id="christmas-intent-hint" class="name-hint">160 characters max</p><div class="ai-suggestions" aria-label="Blessing ideas">${['Thank you for being here', 'Missing you from afar', 'Wishing you peace'].map((text,index)=>`<button type="button" data-action="christmas-idea:${index}"${retry ? ' disabled' : ''}>${['Thank you','Missing you','Peace & warmth'][index]}</button>`).join('')}</div><div class="modal-actions">${button(retry ? 'Try again' : 'Generate blessing', 'christmas-ai-generate', 'primary', 'star', !hasAdFreeCardAccess() && !retry)}${christmasDraft.candidate ? button('View previous draft', 'christmas-candidate', 'secondary') : ''}</div><button type="button" class="text-return" data-action="christmas-return">Back</button></section>`);
     $('christmas-intent').value = christmasDraft.generationCredit?.intent ?? christmasDraft.intent;
   }
   function makePrototypeChristmasMessage(intent) {
@@ -1284,7 +1286,8 @@ window.ADVENT_CONFIG = Object.freeze({
   function showChristmasCardPreview(card) {
     if (!card || !canCreateCard()) return showKeepsake();
     releaseChristmasExport(cardExportContext);
-    openModal(`<section class="card-studio card-view"><h2 id="modal-title" class="modal-title">Your Christmas card</h2><div class="card-preview-wrap" id="card-preview"></div><button type="button" class="card-edit-link" data-action="keepsake">Edit card</button><div class="card-export-actions">${button('Share', 'share-card', 'primary', 'share')}${button('Save', 'download-card', 'secondary', 'download')}</div></section>`);
+    const needsAd = christmasExportNeedsAd();
+    openModal(`<section class="card-studio card-view"><h2 id="modal-title" class="modal-title">Your Christmas card</h2><div class="card-preview-wrap" id="card-preview"></div><button type="button" class="card-edit-link" data-action="keepsake">Edit card</button><div class="card-export-actions">${button('Share', 'share-card', 'primary', 'share', needsAd)}${button('Save', 'download-card', 'secondary', 'download', needsAd)}</div></section>`);
     cardExportContext = {kind:'christmas', card, shareReady:false};
     $('card-preview').append(card.canvas);
   }
@@ -1399,7 +1402,8 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showBlessingCardPreview(day,card) {
     if (statusFor(day) !== 'opened') return;
-    openModal(`<section class="card-studio card-view"><h2 id="modal-title" class="modal-title">Your blessing card</h2><div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div><button type="button" class="card-edit-link" data-action="personalize-blessing:${day}">Edit names</button><div class="card-export-actions">${button('Share','share-card','primary','share')}${button('Save',`download-blessing:${day}`,'secondary','download')}</div></section>`);
+    const needsAd = blessingShareNeedsAd();
+    openModal(`<section class="card-studio card-view"><h2 id="modal-title" class="modal-title">Your blessing card</h2><div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div><button type="button" class="card-edit-link" data-action="personalize-blessing:${day}">Edit names</button><div class="card-export-actions">${button('Share','share-card','primary','share',needsAd)}${button('Save',`download-blessing:${day}`,'secondary','download',needsAd)}</div></section>`);
     cardExportContext={kind:'blessing',day,card,shareReady:false};
     $('blessing-share-preview').append(card.canvas);
   }
