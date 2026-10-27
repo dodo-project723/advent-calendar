@@ -173,7 +173,7 @@ window.ADVENT_CONFIG = Object.freeze({
 
       <section class="finale-card" aria-labelledby="finale-title">
         <div class="finale-art" aria-hidden="true"><svg class="icon"><use href="#i-star"/></svg><span class="card-line"></span><span class="card-line short"></span></div>
-        <div class="finale-copy"><h2 id="finale-title">Your Christmas card</h2><p>Dec 24 · Made with your tree</p></div><button class="icon-button" id="finale-button" aria-label="Discover your Christmas card"><svg class="icon"><use href="#i-chevron"/></svg></button>
+        <div class="finale-copy"><h2 id="finale-title">Your Christmas card</h2><p id="finale-description">Dec 24 · Made with your tree</p></div><button class="icon-button" id="finale-button" aria-label="Discover your Christmas card"><svg class="icon"><use href="#i-chevron"/></svg></button>
       </section>
 
       <section class="pass-card" id="pass-card" aria-labelledby="pass-title">
@@ -278,6 +278,8 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function isMember() { return state.role === 'pass' || state.role === 'vip'; }
   function isAdFree() { return state.adFree || state.role === 'vip'; }
+  function hasAdFreeCardAccess() { return isMember() || isAdFree(); }
+  function canCreateCard() { return hasAdFreeCardAccess() || state.today >= 24; }
   function hasBlessingAdFreeAccess() { return isMember() || isAdFree(); }
   function dailyClaimNeedsAd() { return state.firstDailyClaimUsed && !hasBlessingAdFreeAccess(); }
   function blessingShareNeedsAd() { return !hasBlessingAdFreeAccess(); }
@@ -393,7 +395,8 @@ window.ADVENT_CONFIG = Object.freeze({
       const glyph = status === 'opened' ? 'check' : status === 'available' ? 'gift' : status === 'today' ? (dailyClaimNeedsAd() ? 'play' : 'gift') : status === 'missed' ? (isAdFree() ? 'gift' : 'play') : day === 24 ? 'star' : 'lock';
       return `<button type="button" class="day is-${status}${day === 24 ? ' is-finale' : ''}" data-day="${day}"${day === state.today ? ' aria-current="date"' : ''} aria-label="December ${day}, ${label}">${status === 'today' ? '<span class="today-pin" aria-hidden="true"></span>' : ''}<span class="day-number">${String(day).padStart(2, '0')}</span><span class="day-meta">${icon(glyph)}${visibleLabel}</span></button>`;
     }).join('');
-    $('finale-button').setAttribute('aria-label', isMember() || state.today >= 24 ? 'Create your Christmas card' : 'Discover your Christmas card');
+    $('finale-button').setAttribute('aria-label', canCreateCard() ? 'Create your Christmas card' : 'Discover your Christmas card');
+    $('finale-description').textContent = hasAdFreeCardAccess() ? 'Ready now · Create, save & share ad-free' : state.today >= 24 ? 'Available now · Made with your tree' : 'Dec 24 · Made with your tree';
   }
   function applyTreeStyle(svg, styleId, custom = state.customTree) {
     const style = getTreeStyle(styleId, custom);
@@ -902,7 +905,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showPass() {
     if (isMember()) return toast('Pick a day to unwrap your next blessing.');
-    openModal(modalHeader('star', 'THE ADVENT PASS', '24 little gifts.<br>Yours to unwrap.', 'Your gifts. Your way.') + `<ul class="pass-benefits"><li>${icon('check')}Unwrap one by one, or open them all</li><li>${icon('check')}Light your tree as you unwrap blessings</li><li>${icon('check')}Ad-free blessing access and sharing</li><li>${icon('check')}3 ad-free tree switches each day</li><li>${icon('check')}Your personalized Christmas keepsake</li></ul><p class="plan-distinction">One-time season pass.<br>Unlimited tree switches and ad-free AI creation with monthly membership.</p><div class="modal-actions">${button(preview ? `Preview the Advent Pass · ${price}` : `Continue to checkout · ${price}`, 'checkout', 'primary', 'star')}${button('Keep my free calendar', 'close', 'secondary')}</div><p class="modal-note">${preview ? 'Preview only. No purchase or payment will be made.' : 'One-time purchase. No subscription. Your payment details and final total are shown at checkout.'}</p>`);
+    openModal(modalHeader('star', 'THE ADVENT PASS', '24 little gifts.<br>Yours to unwrap.', 'Your gifts. Your way.') + `<ul class="pass-benefits"><li>${icon('check')}Unwrap one by one, or open them all</li><li>${icon('check')}Light your tree as you unwrap blessings</li><li>${icon('check')}Ad-free blessing access and sharing</li><li>${icon('check')}3 ad-free tree switches each day</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul><p class="plan-distinction">One-time season pass.<br>Unlimited tree switches and ad-free AI creation with monthly membership.</p><div class="modal-actions">${button(preview ? `Preview the Advent Pass · ${price}` : `Continue to checkout · ${price}`, 'checkout', 'primary', 'star')}${button('Keep my free calendar', 'close', 'secondary')}</div><p class="modal-note">${preview ? 'Preview only. No purchase or payment will be made.' : 'One-time purchase. No subscription. Your payment details and final total are shown at checkout.'}</p>`);
   }
   async function checkout(target) {
     await withBusy(target, 'Opening your season…', async () => {
@@ -915,7 +918,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showMembership() {
     const includedWithVIP = state.role === 'vip' && !state.adFree;
-    const benefits = `<ul class="pass-benefits"><li>${icon('check')}Daily blessings and catch-up without videos</li><li>${icon('check')}Share blessing cards without videos</li><li>${icon('check')}${includedWithVIP ? '3 ad-free tree switches each day' : 'Unlimited tree style switches without videos'}</li><li>${icon('check')}AI tree generation without videos</li><li>${icon('check')}Make Christmas cards without videos</li></ul>`;
+    const benefits = `<ul class="pass-benefits"><li>${icon('check')}Daily blessings and catch-up without videos</li><li>${icon('check')}Share blessing cards without videos</li><li>${icon('check')}${includedWithVIP ? '3 ad-free tree switches each day' : 'Unlimited tree style switches without videos'}</li><li>${icon('check')}AI tree generation without videos</li><li>${icon('check')}Create, save & share Christmas cards anytime · No videos</li></ul>`;
     if (isAdFree()) {
       openModal(modalHeader('adfree', 'AD-FREE MEMBERSHIP', 'Your ad-free access') + `<div class="membership-rate">${includedWithVIP ? 'Included with VIP' : `${membershipPrice}<span> / month</span>`}</div><p class="subscription-status">${icon('check')}${includedWithVIP ? 'Active' : state.membershipRenews ? 'Active · Renews monthly' : 'Active · Renewal cancelled'}</p>${benefits}<div class="modal-actions">${button('Back to my tree', 'close', 'primary')}${includedWithVIP ? button(`Unlimited tree switches · ${membershipPrice}/month`, 'subscribe', 'secondary') : button(state.membershipRenews ? 'Cancel renewal' : 'Resume renewal', state.membershipRenews ? 'cancel-renewal' : 'resume-renewal', 'secondary')}</div><p class="modal-note">${includedWithVIP ? 'VIP includes 3 ad-free tree switches daily. Monthly membership makes them unlimited.' : state.membershipRenews ? 'Prototype subscription · No charge will be made.' : 'Ad-free access continues until the end of this billing period.'}</p>`);
       return;
@@ -936,7 +939,7 @@ window.ADVENT_CONFIG = Object.freeze({
     openModal(modalHeader('star', `THE CANDLE OF ${candle.name.toUpperCase()}`, lit ? `${candle.name} is glowing.` : `A little closer to ${candle.name.toLowerCase()}.`, lit ? candle.description : `Open ${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} to light this candle. Every day you return adds a little more light to your tree.`) + `<div class="modal-actions">${button('Back to my tree', 'close')}${!lit && !isMember() ? button('Unwrap any date with a Pass', 'pass', 'secondary') : ''}</div>`);
   }
   function showRules() {
-    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Download received blessing cards for free. Watch one video each time you share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24, or earlier with Pass / VIP.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
+    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Download received blessing cards for free. Watch one video each time you share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
   }
   function showPreviewControls() {
     if (!preview) return;
@@ -967,15 +970,17 @@ window.ADVENT_CONFIG = Object.freeze({
     finally { restoreButtonBusy = false; $('restore-button').disabled = false; }
   }
   function showKeepsake() {
-    if (!isMember() && state.today < 24) {
-      openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a beautiful Christmas card with your name and a little light to share.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${preview ? button('体验圣诞夜贺卡', 'preview-eve', 'secondary') : button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
+    if (!canCreateCard()) {
+      openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${preview ? button('体验圣诞夜贺卡', 'preview-eve', 'secondary') : button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
       return;
     }
-    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'Add your name to a little light for someone you love.') + `<label class="name-label" for="card-name">Your name</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'Your name will be used to create your card.' : 'Your name stays on this device.'}</p>` + `<div class="modal-actions">${button(isMember() || isAdFree() ? 'Create my Christmas card' : 'Watch & create my card', 'generate', 'primary', isMember() || isAdFree() ? 'star' : 'play')}</div><p class="modal-note">${isMember() || isAdFree() ? 'A high-resolution keepsake, ready to save or share.' : 'One short video. One Christmas wish to keep.'}</p>`);
+    openModal(modalHeader('gift', 'A CHRISTMAS WISH, FROM YOU', 'Make it personal.', 'Add your name to a little light for someone you love.') + `<label class="name-label" for="card-name">Your name</label><input class="name-input" id="card-name" type="text" maxlength="24" autocomplete="given-name" enterkeyhint="done" placeholder="e.g. Emma" aria-describedby="name-hint"><p class="name-hint" id="name-hint">Up to 24 characters. ${config.cardMode === 'ai' ? 'Your name will be used to create your card.' : 'Your name stays on this device.'}</p>` + `<div class="modal-actions">${button(hasAdFreeCardAccess() ? 'Create my Christmas card' : 'Watch & create my card', 'generate', 'primary', hasAdFreeCardAccess() ? 'star' : 'play')}</div><p class="modal-note">${hasAdFreeCardAccess() ? 'Create, save and share without videos.' : 'One short video. One Christmas wish to keep.'}</p>`);
     $('card-name').value = state.name;
   }
   async function generateCard(target) {
+    if (!canCreateCard()) return showKeepsake();
     const input = $('card-name');
+    if (!input) return showKeepsake();
     const name = input.value.trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 24);
     if (!name) { input.setAttribute('aria-invalid', 'true'); input.focus(); errorMessage('Add your name to make this card yours.'); return; }
     const version = modalVersion;
@@ -993,7 +998,12 @@ window.ADVENT_CONFIG = Object.freeze({
     });
   }
   async function authorizeCard() {
-    if (isMember() || isAdFree()) return {};
+    if (!canCreateCard()) {
+      const error = new Error('Christmas card is not available yet');
+      error.userMessage = 'Your Christmas card opens December 24, or now with a Pass or monthly VIP membership.';
+      throw error;
+    }
+    if (hasAdFreeCardAccess()) return {};
     const reward=await requestRewardVideo({placement:'christmas-card'});
     if(!preview&&config.apiBase&&config.cardMode!=='ai') {
       const authorization=await request('/cards/authorize',reward);
