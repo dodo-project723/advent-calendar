@@ -79,6 +79,7 @@ dialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:480px;ma
 @keyframes keepsake-breathe{0%,100%{opacity:.28}50%{opacity:.9}}
 .card-tree-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:7px 12px;margin-top:20px;text-align:left;border:1px solid #c9b77c40;border-radius:12px;background:#10251b;color:var(--ink)}.card-tree-mini{flex:none;width:58px;height:62px}.card-tree-mini svg{width:100%;height:100%;display:block}.card-tree-choice-copy{flex:1;min-width:0}.card-tree-choice-copy small{display:block;color:#a7b79d;font-size:10px}.card-tree-choice-copy strong{display:block;font:19px var(--serif);color:#e9d7a6;margin:2px 0}.card-tree-choice-copy span{color:#c9bb8b;font-size:11px}.card-tree-choice>.icon{color:var(--gold);width:18px}
 
+.card-tree-nudge{display:flex;align-items:center;gap:9px;width:100%;min-height:61px;margin:14px 0 0;padding:10px 11px;text-align:left;border:1px solid #c6b37b45;border-radius:10px;background:#e6c98608;color:#d9c695}.card-tree-nudge>span:first-child{display:grid;place-items:center;width:27px;height:30px;flex:none}.card-tree-nudge>span:nth-child(2){flex:1;min-width:0}.card-tree-nudge strong{display:block;font-size:12px;font-weight:400}.card-tree-nudge small{display:block;font-size:9px;color:#9eae94;line-height:1.6;margin-top:2px}.card-tree-nudge>.icon{width:14px;height:14px}.card-tree-nudge:active{background:#e6c98614}
 .ad-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:23px;height:16px;padding:0 4px;border:1px solid currentColor;border-radius:4px;font:700 9px/1 Arial,sans-serif;letter-spacing:.35px;opacity:.85}
 /* Card editing stays in one place; the preview is focused on the card. */
 .card-studio .modal-title{font-size:27px;margin:0 20px 20px;line-height:1.2}.card-studio .name-label{margin:0 0 7px}.card-studio .name-label span{color:#94a28c;font-size:10px;margin-left:5px}.card-name-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}.card-name-fields>div{min-width:0}.card-name-fields .name-input{padding:10px 12px}.card-field-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}.card-field-heading .name-label{margin:0}.card-field-heading .text-button{font-size:11px;padding:6px 0;gap:5px}.card-field-heading .icon{width:14px;height:14px}.card-studio .christmas-message-input{min-height:128px;resize:vertical;line-height:1.65}.card-studio .name-hint{font-size:9px;text-align:right;margin:5px 0 0}.card-studio .card-tree-choice{min-height:62px;margin-top:15px;padding:4px 10px;gap:9px}.card-studio .card-tree-mini{width:43px;height:49px}.card-studio .card-tree-choice-copy strong{font-size:17px}.card-studio .modal-actions{margin-top:18px}.card-studio .text-return{display:flex;justify-content:center;margin:10px auto 0;min-height:44px;color:#aebba1;font-size:12px;background:transparent;padding:8px 14px}.card-studio .ai-suggestions{margin-top:12px;gap:6px}.card-studio .ai-suggestions button{font-size:10px;padding:8px 10px;min-height:44px}.card-studio.card-view .modal-title{font-size:25px;margin-bottom:15px}.card-view .card-preview-wrap{max-width:210px;width:min(210px,35dvh);margin:0 auto 4px}.card-view .card-edit-link{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;margin:auto;background:transparent;color:#d0bd89;font-size:12px}.card-view .card-edit-link .icon{width:14px;height:14px}.card-view .card-export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.card-view .card-export-actions button{min-width:0}.christmas-message-copy{white-space:pre-wrap;overflow-wrap:anywhere;font:17px/1.8 var(--serif);color:#ece1bf;margin:0}.christmas-message-box{padding:18px;border:1px solid #c6b37b40;border-radius:12px;background:#10251b;margin-top:18px}.christmas-previous{margin-top:18px;color:#a9b69d;font-size:11px}.christmas-previous p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8}
@@ -182,7 +183,7 @@ window.ADVENT_CONFIG = Object.freeze({
 
       <section class="finale-card" aria-labelledby="finale-title">
         <div class="finale-art" aria-hidden="true"><svg class="icon"><use href="#i-star"/></svg><span class="card-line"></span><span class="card-line short"></span></div>
-        <div class="finale-copy"><h2 id="finale-title">Your Christmas card</h2><p id="finale-description">Dec 24 · Made with your tree</p></div><button class="icon-button" id="finale-button" aria-label="Discover your Christmas card" aria-describedby="finale-description"><svg class="icon"><use href="#i-chevron"/></svg></button>
+        <div class="finale-copy"><h2 id="finale-title">Your Christmas card</h2><p id="finale-description">Dec 24 · Your card features your tree. Receive blessings to light it up.</p></div><button class="icon-button" id="finale-button" aria-label="Discover your Christmas card" aria-describedby="finale-description"><svg class="icon"><use href="#i-chevron"/></svg></button>
       </section>
 
       <section class="pass-card" id="pass-card" aria-labelledby="pass-title">
@@ -282,6 +283,7 @@ window.ADVENT_CONFIG = Object.freeze({
   const christmasDraft = { message: defaultChristmasMessage, intent: '', candidate: null, generationCredit: null, exportCredits: [] };
   let christmasEditOrigin = 'preview';
   let christmasResetVersion = 0;
+  let christmasCardResume = false;
 
   function getCampaignDay() {
     if (preview) return 5;
@@ -361,7 +363,8 @@ window.ADVENT_CONFIG = Object.freeze({
             christmasDraft.candidate = cleanChristmasText(saved.christmasDraft.candidate) || null;
             const credit = saved.christmasDraft.generationCredit;
             christmasDraft.generationCredit = credit && typeof credit.id === 'string' ? {id:credit.id, adOutcome:credit.adOutcome, intent:cleanChristmasText(credit.intent ?? saved.christmasDraft.intent,160), name:cleanCardName(credit.name), recipient:cleanCardName(credit.recipient)} : null;
-            christmasDraft.exportCredits = Array.isArray(saved.christmasDraft.exportCredits) ? [...new Map(saved.christmasDraft.exportCredits.filter(item => item && typeof item.id === 'string').slice(0, 99).map(item => [item.id, {id:item.id}])).values()] : [];
+            // Export rewards belong to the current card-making flow, never a restored draft.
+            christmasDraft.exportCredits = [];
           }
         }
         if (preview && ['free', 'pass', 'vip'].includes(saved.role)) state.role = saved.role;
@@ -377,7 +380,7 @@ window.ADVENT_CONFIG = Object.freeze({
     } catch { /* A new or unavailable store starts with the first free blessing. */ }
   }
   function save() {
-    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, christmasDraft: {message:christmasDraft.message,intent:christmasDraft.intent,...(preview ? {candidate:christmasDraft.candidate,generationCredit:christmasDraft.generationCredit,exportCredits:christmasDraft.exportCredits} : {})}, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, christmasDraft: {message:christmasDraft.message,intent:christmasDraft.intent,...(preview ? {candidate:christmasDraft.candidate,generationCredit:christmasDraft.generationCredit} : {})}, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
   }
   function announce(message) { $('live-status').textContent = message; }
   function toast(message) {
@@ -427,7 +430,7 @@ window.ADVENT_CONFIG = Object.freeze({
     }).join('');
     document.querySelector('.finale-card').classList.toggle('is-ready', canCreateCard());
     $('finale-button').setAttribute('aria-label', canCreateCard() ? 'Create your Christmas card' : 'Discover your Christmas card');
-    $('finale-description').textContent = hasAdFreeCardAccess() ? 'Ready now · Create, save & share ad-free' : state.today >= 24 ? 'Available now · Made with your tree' : 'Dec 24 · Made with your tree';
+    $('finale-description').textContent = currentTier < 4 ? `${canCreateCard() ? '' : 'Dec 24 · '}Your card features your tree. Receive blessings to light it up.` : `${canCreateCard() ? '' : 'Dec 24 · '}Your fully lit Christmas tree, on your card.`;
   }
   function applyTreeStyle(svg, styleId, custom = state.customTree) {
     const style = getTreeStyle(styleId, custom);
@@ -1016,6 +1019,24 @@ window.ADVENT_CONFIG = Object.freeze({
     catch { toast('We couldn’t restore access. Please try again.'); }
     finally { restoreButtonBusy = false; $('restore-button').disabled = false; }
   }
+  function beginChristmasCard() {
+    if (state.busy) return;
+    if (!christmasCardResume) {
+      christmasResetVersion += 1;
+      christmasDraft.exportCredits = [];
+    }
+    christmasCardResume = false;
+    showKeepsake();
+    save();
+  }
+  function lightChristmasTree() {
+    if (tier() >= 4) return;
+    christmasCardResume = true;
+    closeModal();
+    document.querySelector('.calendar-section')?.scrollIntoView({behavior:'smooth', block:'start'});
+    const day = document.querySelector('#calendar-grid .is-today') || document.querySelector('#calendar-grid .is-available') || document.querySelector('#calendar-grid .is-missed');
+    day?.focus({preventScroll:true});
+  }
   function showKeepsake() {
     if (!canCreateCard()) {
       openModal(modalHeader('gift', 'YOUR CHRISTMAS EVE KEEPSAKE', 'A little magic is on its way.', 'On December 24, turn your Advent tree into a Christmas card. With a Pass or monthly VIP membership, create it now and save or share without videos.') + `<div class="modal-actions">${button(`Create it early with a Pass · ${price}`, 'pass', 'primary', 'star')}${button(`Create it early with monthly VIP · ${membershipPrice}/month`, 'membership', 'secondary')}${button('I’ll be here on Christmas Eve', 'close', 'secondary')}</div>`);
@@ -1146,7 +1167,7 @@ window.ADVENT_CONFIG = Object.freeze({
         const error = new Error('Incomplete blessing response'); error.userMessage = 'Your draft needs another moment. Please try again.'; failureMessage = error.userMessage; throw error;
       }
       if (!paid) {
-        if (!christmasDraft.exportCredits.some(item => item.id === authorization.id)) christmasDraft.exportCredits.push({id:authorization.id, resetVersion, ...(preview ? {} : {token:result.exportCreditToken})});
+        if ((authorization.adOutcome === 'completed' || authorization.rewardToken) && !christmasDraft.exportCredits.some(item => item.id === authorization.id)) christmasDraft.exportCredits.push({id:authorization.id, resetVersion, ...(preview ? {} : {token:result.exportCreditToken})});
         if (christmasDraft.generationCredit === authorization) christmasDraft.generationCredit = null;
       }
       christmasDraft.candidate = message; save();
@@ -1287,7 +1308,8 @@ window.ADVENT_CONFIG = Object.freeze({
     if (!card || !canCreateCard()) return showKeepsake();
     releaseChristmasExport(cardExportContext);
     const needsAd = christmasExportNeedsAd();
-    openModal(`<section class="card-studio card-view"><h2 id="modal-title" class="modal-title">Your Christmas card</h2><div class="card-preview-wrap" id="card-preview"></div><button type="button" class="card-edit-link" data-action="keepsake">Edit card</button><div class="card-export-actions">${button('Share', 'share-card', 'primary', 'share', needsAd)}${button('Save', 'download-card', 'secondary', 'download', needsAd)}</div></section>`);
+    const litLayers = tier();
+    openModal(`<section class="card-studio card-view"><h2 id="modal-title" class="modal-title">Your Christmas card</h2><div class="card-preview-wrap" id="card-preview"></div>${litLayers < 4 ? `<button type="button" class="card-tree-nudge" data-action="light-card-tree"><span>${icon('star')}</span><span><strong>Light up your tree</strong><small>${litLayers} / 4 layers lit · Receive more blessings</small></span>${icon('chevron')}</button>` : ''}<button type="button" class="card-edit-link" data-action="keepsake:edit">Edit card</button><div class="card-export-actions">${button('Share', 'share-card', 'primary', 'share', needsAd)}${button('Save', 'download-card', 'secondary', 'download', needsAd)}</div></section>`);
     cardExportContext = {kind:'christmas', card, shareReady:false};
     $('card-preview').append(card.canvas);
   }
@@ -1476,7 +1498,8 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'show-blessing') showDay(Number(value));
     else if (action === 'native-card-share') nativeCardShare();
     else if (action === 'card-preview') returnToCardPreview();
-    else if (action === 'keepsake') showKeepsake();
+    else if (action === 'keepsake') { if (value === 'edit') showKeepsake(); else beginChristmasCard(); }
+    else if (action === 'light-card-tree') lightChristmasTree();
     else if (action === 'generate') generateCard(target);
     else if (action === 'christmas-edit') showChristmasMessageEditor(value);
     else if (action === 'christmas-save-message') saveChristmasMessage(target);
@@ -1509,7 +1532,7 @@ window.ADVENT_CONFIG = Object.freeze({
       setPreviewProgress(count);
       if (stage) showMilestoneCelebration(stage); else closeModal();
     }
-    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; christmasResetVersion += 1; christmasDraft.message = defaultChristmasMessage; christmasDraft.intent = ''; christmasDraft.candidate = null; christmasDraft.generationCredit = null; christmasDraft.exportCredits = []; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('设置已重置'); }
+    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; christmasResetVersion += 1; christmasCardResume = false; christmasDraft.message = defaultChristmasMessage; christmasDraft.intent = ''; christmasDraft.candidate = null; christmasDraft.generationCredit = null; christmasDraft.exportCredits = []; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('设置已重置'); }
   }
 
   readSaved();
@@ -1526,7 +1549,7 @@ window.ADVENT_CONFIG = Object.freeze({
   $('unwrap-all-button').addEventListener('click', event => unwrapAllBlessings(event.currentTarget));
   $('adfree-button').addEventListener('click', showMembership);
   $('tree-style-button').addEventListener('click', () => showTreeStyles());
-  document.querySelector('.finale-card').addEventListener('click', showKeepsake);
+  document.querySelector('.finale-card').addEventListener('click', beginChristmasCard);
   $('modal-content').addEventListener('click', handleAction);
   $('modal-content').addEventListener('input', event => { if (event.target.id === 'christmas-message' || event.target.id === 'christmas-intent') { const limit=event.target.id === 'christmas-message' ? 240 : 160; const raw=Array.from(event.target.value); if(raw.length > limit) event.target.value=raw.slice(0,limit).join(''); if($('christmas-message-count')) $('christmas-message-count').textContent=Array.from(event.target.value).length; } if (event.target.id === 'ai-tree-prompt') { $('ai-prompt-count').textContent = `${event.target.value.length} / 120`; event.target.removeAttribute('aria-invalid'); $('modal-error')?.remove(); } if (event.target.id === 'preview-progress' && !state.busy) setPreviewProgress(Number(event.target.value)); });
   $('modal-content').addEventListener('change', event => { if(event.target.id==='preview-tree-switches'&&preview&&!state.busy){const used=Number(event.target.value);if(Number.isInteger(used)&&used>=0&&used<=3){state.treeStyleUsage[treeSwitchDayKey()]=used;save();}} if(event.target.id==='preview-ad-outcome'&&preview&&!state.busy&&['filled','no-fill'].includes(event.target.value)){adPreviewOutcome=event.target.value;save();} if (event.target.id === 'preview-membership' && preview && !state.busy) { state.adFree = ['active', 'cancelled'].includes(event.target.value); state.membershipRenews = event.target.value !== 'cancelled'; save(); render(); } if (event.target.id === 'ai-preview-outcome' && ['success', 'failure'].includes(event.target.value)) aiPreviewOutcome = event.target.value; if (event.target.id === 'preview-day' && !state.busy) { setPreviewDay(Number(event.target.value)); showPreviewControls(); } });
