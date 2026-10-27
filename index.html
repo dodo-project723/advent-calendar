@@ -161,7 +161,7 @@ window.ADVENT_CONFIG = Object.freeze({
         <div class="tree-summary">
           <span class="tier-label" id="tier-label">0 / 4 CANDLES</span>
           <h2 id="tree-title">Your tree</h2>
-          <div class="growth"><div class="growth-labels"><span><strong id="claimed-count">0</strong> / 24 <span class="progress-unit">blessings</span></span></div><div class="growth-track" role="progressbar" aria-label="Advent blessings opened" aria-valuenow="0" aria-valuemin="0" aria-valuemax="24"><span id="growth-fill"></span></div><p id="next-milestone">Hope at 6 blessings</p></div>
+          <div class="growth"><div class="growth-labels"><span><strong id="claimed-count">0</strong> / 24 <span class="progress-unit">blessings</span></span></div><div class="growth-track" role="progressbar" aria-label="Advent blessings opened" aria-valuenow="0" aria-valuemin="0" aria-valuemax="24"><span id="growth-fill"></span></div><p id="next-milestone">Hope at 1 blessing</p></div>
         </div>
         <div class="candles" id="candles" aria-label="Four Advent candles"></div>
       </section>
@@ -233,9 +233,9 @@ window.ADVENT_CONFIG = Object.freeze({
     ['Unto us, a light.', 'Tonight, may hope feel close, peace find a home, joy fill the quiet, and love shine in every corner of your Christmas.', 'Isaiah 9:6'],
   ];
   const candleData = [
-    { name: 'Hope', threshold: 6, description: 'The bottom layer is decorated and lit.' },
-    { name: 'Peace', threshold: 12, description: 'The second layer is decorated and lit.' },
-    { name: 'Joy', threshold: 18, description: 'Three layers lit. One more candle to go.' },
+    { name: 'Hope', threshold: 1, description: 'The bottom layer is decorated and lit.' },
+    { name: 'Peace', threshold: 8, description: 'The second layer is decorated and lit.' },
+    { name: 'Joy', threshold: 16, description: 'Three layers lit. One more candle to go.' },
     { name: 'Love', threshold: 24, description: 'All 24 blessings received. All four layers and the star are shining.' },
   ];
   const treeStyles = [
@@ -264,6 +264,7 @@ window.ADVENT_CONFIG = Object.freeze({
   let cardObjectUrl = null;
   let restoreButtonBusy = false;
   let milestoneCleanup = null;
+  let pendingClaimCelebration = null;
   const blessingCards = new Map();
   const blessingDrafts = new Map();
   let cardExportContext = null;
@@ -390,8 +391,8 @@ window.ADVENT_CONFIG = Object.freeze({
     $('tier-label').textContent = `${currentTier} / 4 CANDLES`;
     $('tree-title').textContent = currentTier ? candleData[currentTier - 1].name : 'Your tree';
     const next = candleData.find((item) => count < item.threshold);
-    $('next-milestone').textContent = next ? `${next.name} at ${next.threshold} blessings` : 'Tree complete';
-    $('candles').innerHTML = candleData.map((item, index) => `<button class="candle-button${count >= item.threshold ? ' is-lit' : ''}" type="button" data-candle="${index}" aria-label="Candle of ${item.name}, ${count >= item.threshold ? 'lit' : `opens after ${item.threshold} blessings`}"><span class="candle-figure" aria-hidden="true"><span class="candle-wax"></span><span class="candle-flame"></span></span><span class="candle-name">${item.name}</span></button>`).join('');
+    $('next-milestone').textContent = next ? `${next.name} at ${next.threshold} blessing${next.threshold === 1 ? '' : 's'}` : 'Tree complete';
+    $('candles').innerHTML = candleData.map((item, index) => `<button class="candle-button${count >= item.threshold ? ' is-lit' : ''}" type="button" data-candle="${index}" aria-label="Candle of ${item.name}, ${count >= item.threshold ? 'lit' : `opens after ${item.threshold} blessing${item.threshold === 1 ? '' : 's'}`}"><span class="candle-figure" aria-hidden="true"><span class="candle-wax"></span><span class="candle-flame"></span></span><span class="candle-name">${item.name}</span></button>`).join('');
     $('calendar-grid').innerHTML = Array.from({ length: 24 }, (_, index) => {
       const day = index + 1;
       const status = statusFor(day);
@@ -459,9 +460,11 @@ window.ADVENT_CONFIG = Object.freeze({
     svg.setAttribute('aria-label', `${style.name}. ${currentTier} of 4 Christmas tree layers decorated and lit, from the bottom up. ${lit ? 'The star is shining.' : 'The star awaits the final candle.'}`);
   }
   function openModal(markup) {
+    const pending = $('modal').open && pendingClaimCelebration?.version === modalVersion ? pendingClaimCelebration : null;
     stopMilestoneCelebration();
     cardExportContext = null;
     modalVersion += 1;
+    pendingClaimCelebration = pending ? {...pending, version:modalVersion} : null;
     $('modal-content').innerHTML = markup;
     if (!$('modal').open) {
       $('modal').showModal();
@@ -472,6 +475,8 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function closeModal(fromHistory = false) {
     if (!$('modal').open) return;
+    const pending = pendingClaimCelebration?.version === modalVersion ? pendingClaimCelebration : null;
+    pendingClaimCelebration = null;
     stopMilestoneCelebration();
     $('modal').close();
     modalVersion += 1;
@@ -480,6 +485,7 @@ window.ADVENT_CONFIG = Object.freeze({
     modalHistory = false;
     cardExportContext = null;
     if (cardObjectUrl) { URL.revokeObjectURL(cardObjectUrl); cardObjectUrl = null; }
+    if (pending && state.claimed.includes(pending.day) && tier() >= pending.stage) showMilestoneCelebration(pending.stage);
   }
   function stopMilestoneCelebration() {
     if (milestoneCleanup) { milestoneCleanup(); milestoneCleanup = null; }
@@ -487,6 +493,7 @@ window.ADVENT_CONFIG = Object.freeze({
   function showMilestoneCelebration(stage) {
     const candle = candleData[stage - 1];
     if (!candle) return;
+    pendingClaimCelebration = null;
     closeModal();
     stopMilestoneCelebration();
     const finale = stage === 4;
@@ -566,12 +573,13 @@ window.ADVENT_CONFIG = Object.freeze({
     later(finale ? 3900 : 2860, () => {
       applyTreeLighting(tree, stage); phase('complete');
       const next = candleData[stage];
-      $('next-milestone').textContent = next ? `${next.name} at ${next.threshold} blessings` : 'Tree complete';
-      toast(caption); announce(`${candle.threshold} blessings received. Candle of ${candle.name} and tree layer ${stage} lit.${finale ? ' The star is shining.' : ''}`);
+      $('next-milestone').textContent = next ? `${next.name} at ${next.threshold} blessing${next.threshold === 1 ? '' : 's'}` : 'Tree complete';
+      toast(caption); announce(`${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} received. Candle of ${candle.name} and tree layer ${stage} lit.${finale ? ' The star is shining.' : ''}`);
     });
     later(finale ? 5200 : 4200, stopMilestoneCelebration);
   }
   function showBulkMilestoneCelebration(previousTier, openedDays) {
+    pendingClaimCelebration = null;
     closeModal();
     stopMilestoneCelebration();
     const caption = 'All 24 blessings unwrapped. Your tree is shining.';
@@ -828,7 +836,7 @@ window.ADVENT_CONFIG = Object.freeze({
       openModal(modalHeader('gift', `DECEMBER ${day}`, 'A little light for today.', firstFree ? 'Your first daily blessing is free.' : needsAd ? 'Watch one short video to receive today’s blessing.' : 'Included with your ad-free access.') + `<div class="modal-actions">${button(needsAd ? 'Watch & receive blessing' : firstFree ? 'Receive blessing · Free' : 'Receive blessing', `claim:${day}`, 'primary', needsAd ? 'play' : 'gift')}</div>`);
       return;
     }
-    openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Personalize my card', `personalize-blessing:${day}`, 'primary', 'share')}</div>`);
+    openModal(`<span class="modal-eyebrow">DECEMBER ${day} · RECEIVED</span><h2 id="modal-title" class="modal-title">${blessing[0]}</h2><article class="blessing-card${reveal ? ' is-revealing' : ''}"><p>${blessing[1]}</p><span class="blessing-ref">INSPIRED BY ${blessing[2].toUpperCase()}</span></article><div class="modal-actions">${button('Personalize my card', `personalize-blessing:${day}`, 'primary', 'share')}${button('Back to my tree', 'close', 'secondary')}</div>`);
   }
   async function requestRewardVideo(details) {
     if (preview && typeof config.showRewardedAd !== 'function') return previewVideo();
@@ -864,10 +872,11 @@ window.ADVENT_CONFIG = Object.freeze({
       if (!catchUp && day === state.today) state.firstDailyClaimUsed = true;
       save(); render();
       const newTier = tier();
-      if ($('modal').open && modalVersion === version && newTier > previousTier) showMilestoneCelebration(newTier);
-      else {
-        if ($('modal').open && modalVersion === version) showDay(day, true);
-        celebrateTree(); toast('Your blessing is ready to keep.');
+      if ($('modal').open && modalVersion === version) {
+        showDay(day, true);
+        if (newTier > previousTier) pendingClaimCelebration = {day, stage:newTier, version:modalVersion};
+        else celebrateTree();
+        toast('Your blessing is ready to keep.');
         announce(`Day ${day} received. ${effectiveCount()} of 24 blessings.`);
       }
     });
@@ -943,7 +952,7 @@ window.ADVENT_CONFIG = Object.freeze({
     openModal(modalHeader('star', `THE CANDLE OF ${candle.name.toUpperCase()}`, lit ? `${candle.name} is glowing.` : `A little closer to ${candle.name.toLowerCase()}.`, lit ? candle.description : `Open ${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} to light this candle. Every day you return adds a little more light to your tree.`) + `<div class="modal-actions">${button('Back to my tree', 'close')}${!lit && !isMember() ? button('Unwrap any date with a Pass', 'pass', 'secondary') : ''}</div>`);
   }
   function showRules() {
-    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>`);
+    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Your first blessing lights Hope and the bottom tree layer. Receive 8 blessings to light Peace and the second layer, then 16 to light Joy and the third layer. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>`);
   }
   function showPreviewControls() {
     if (!preview) return;
