@@ -942,7 +942,7 @@ window.ADVENT_CONFIG = Object.freeze({
     openModal(modalHeader('star', `THE CANDLE OF ${candle.name.toUpperCase()}`, lit ? `${candle.name} is glowing.` : `A little closer to ${candle.name.toLowerCase()}.`, lit ? candle.description : `Open ${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} to light this candle. Every day you return adds a little more light to your tree.`) + `<div class="modal-actions">${button('Back to my tree', 'close')}${!lit && !isMember() ? button('Unwrap any date with a Pass', 'pass', 'secondary') : ''}</div>`);
   }
   function showRules() {
-    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Choose to download for free or watch one video to share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
+    openModal(modalHeader('info', 'ADVENT CALENDAR', 'How it works') + `<ol class="rules-list"><li><strong>Receive a daily blessing</strong>Your first daily claim is free. After that, one video unlocks each new daily blessing. Received blessings stay available.</li><li><strong>Light your tree, layer by layer</strong>Receive 6, 12, and 18 blessings to light Hope, Peace, and Joy, each adding one layer from the bottom up. Receive all 24 to light Love, the final layer, and the star.</li><li><strong>Catch up anytime</strong>A rewarded video opens one missed day. Pass / VIP let you unwrap any date individually, or choose Unwrap all. Only received blessings light your tree. Ad-free membership is ${membershipPrice}/month.</li><li><strong>Keep and share your blessings</strong>Add optional To and From names, then preview your card for free. Watch one video each time you download or share. Pass / VIP and ad-free membership skip these videos.</li><li><strong>Make your tree yours</strong>Pass / VIP include 3 ad-free tree switches each day. After that, watch a video to switch. Ad-free monthly membership includes unlimited switches.</li><li><strong>Your Christmas card</strong>Available December 24. Add optional names and preview for free, then watch one video to save or share. Pass and monthly VIP users can create, save and share anytime without videos.</li></ol><p class="modal-note">If a video is unavailable, continue without it.<br>One-time Pass for ${campaignYear}.</p>${preview ? `<div class="modal-actions">${button('打开体验设置', 'preview-settings', 'secondary')}</div>` : ''}`);
   }
   function showPreviewControls() {
     if (!preview) return;
@@ -1160,12 +1160,18 @@ window.ADVENT_CONFIG = Object.freeze({
     cardObjectUrl=URL.createObjectURL(card.blob);
     const link=document.createElement('a');link.href=cardObjectUrl;link.download=card.filename;document.body.append(link);link.click();link.remove();
   }
-  function downloadBlessing(day) {
+  async function downloadBlessing(day,target) {
     const context = cardExportContext;
     if (statusFor(day) !== 'opened' || !context || context.kind !== 'blessing' || context.day !== day || context.shareReady) return;
-    saveCardFile(context.card);
-    toast('Blessing card downloaded. No video needed.');
-    announce(`Day ${day} card downloaded.`);
+    const version = modalVersion;
+    const needsAd = blessingShareNeedsAd();
+    await withBusy(target, needsAd ? 'Waiting for your video…' : 'Preparing your card…', async () => {
+      if (needsAd) await requestRewardVideo({placement:'blessing-download',day});
+      if (!$('modal').open || modalVersion !== version || cardExportContext !== context) return;
+      saveCardFile(context.card);
+      toast('Blessing card downloaded.');
+      announce(`Day ${day} card downloaded.`);
+    });
   }
   function showBlessingComposer(day) {
     if (statusFor(day)!=='opened') return;
@@ -1177,7 +1183,7 @@ window.ADVENT_CONFIG = Object.freeze({
   function showBlessingCardPreview(day,card) {
     if (statusFor(day) !== 'opened') return;
     const needsAd = blessingShareNeedsAd();
-    openModal(modalHeader('check',`DECEMBER ${day}`,'Your blessing, ready.')+'<div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div>'+`<div class="modal-actions">${button('Download card · Free',`download-blessing:${day}`,'primary','download')}${button(needsAd ? 'Watch & share card' : 'Share card','share-card','secondary',needsAd ? 'play' : 'share')}${button('Edit names',`personalize-blessing:${day}`,'secondary')}</div><p class="modal-note">${needsAd ? 'Download for free. One video each time you share.' : 'Download and share without videos.'}</p>`);
+    openModal(modalHeader('check',`DECEMBER ${day}`,'Your blessing, ready.')+'<div class="card-preview-wrap blessing-share-preview" id="blessing-share-preview"></div>'+`<div class="modal-actions">${button(needsAd ? 'Watch & download card' : 'Download card',`download-blessing:${day}`,'primary',needsAd ? 'play' : 'download')}${button(needsAd ? 'Watch & share card' : 'Share card','share-card','secondary',needsAd ? 'play' : 'share')}${button('Edit names',`personalize-blessing:${day}`,'secondary')}</div><p class="modal-note">${needsAd ? 'Preview is free. One video per download or share.' : 'Download and share without videos.'}</p>`);
     cardExportContext={kind:'blessing',day,card,shareReady:false};
     $('blessing-share-preview').append(card.canvas);
   }
@@ -1247,7 +1253,7 @@ window.ADVENT_CONFIG = Object.freeze({
     else if (action === 'catchup') claimDay(Number(value), target, true);
     else if (action === 'personalize-blessing') showBlessingComposer(Number(value));
     else if (action === 'prepare-blessing-card') prepareBlessingCard(Number(value), target);
-    else if (action === 'download-blessing') downloadBlessing(Number(value));
+    else if (action === 'download-blessing') downloadBlessing(Number(value), target);
     else if (action === 'show-blessing') showDay(Number(value));
     else if (action === 'preview-card-share') previewCardShare(Number(value));
     else if (action === 'native-card-share') nativeCardShare();
