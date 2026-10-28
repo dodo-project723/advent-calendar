@@ -83,6 +83,7 @@ dialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:480px;ma
 .ad-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:23px;height:16px;padding:0 4px;border:1px solid currentColor;border-radius:4px;font:700 9px/1 Arial,sans-serif;letter-spacing:.35px;opacity:.85}
 /* Card editing stays in one place; the preview is focused on the card. */
 .card-studio .modal-title{font-size:27px;margin:0 20px 20px;line-height:1.2}.card-studio .name-label{margin:0 0 7px}.card-studio .name-label span{color:#94a28c;font-size:10px;margin-left:5px}.card-name-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}.card-name-fields>div{min-width:0}.card-name-fields .name-input{padding:10px 12px}.card-field-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}.card-field-heading .name-label{margin:0}.card-field-heading .text-button{font-size:11px;padding:6px 0;gap:5px}.card-field-heading .icon{width:14px;height:14px}.card-studio .christmas-message-input{min-height:128px;resize:vertical;line-height:1.65}.card-studio .name-hint{font-size:9px;text-align:right;margin:5px 0 0}.card-studio .card-tree-choice{min-height:62px;margin-top:15px;padding:4px 10px;gap:9px}.card-studio .card-tree-mini{width:43px;height:49px}.card-studio .card-tree-choice-copy strong{font-size:17px}.card-studio .modal-actions{margin-top:18px}.card-studio .text-return{display:flex;justify-content:center;margin:10px auto 0;min-height:44px;color:#aebba1;font-size:12px;background:transparent;padding:8px 14px}.card-studio .ai-suggestions{margin-top:12px;gap:6px}.card-studio .ai-suggestions button{font-size:10px;padding:8px 10px;min-height:44px}.card-studio.card-view .modal-title{font-size:25px;margin-bottom:15px}.card-view .card-preview-wrap{max-width:210px;width:min(210px,35dvh);margin:0 auto 4px}.card-view .card-edit-link{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;margin:auto;background:transparent;color:#d0bd89;font-size:12px}.card-view .card-edit-link .icon{width:14px;height:14px}.card-view .card-export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.card-view .card-export-actions button{min-width:0}.christmas-message-copy{white-space:pre-wrap;overflow-wrap:anywhere;font:17px/1.8 var(--serif);color:#ece1bf;margin:0}.christmas-message-box{padding:18px;border:1px solid #c6b37b40;border-radius:12px;background:#10251b;margin-top:18px}.christmas-previous{margin-top:18px;color:#a9b69d;font-size:11px}.christmas-previous p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8}
+.first-tree-choice .modal-title{margin-bottom:14px}.first-tree-choice .tree-style-options{margin-top:12px}.first-tree-choice .style-thumbnail,.first-tree-choice .style-thumbnail svg{height:104px}.first-tree-choice .style-name{min-height:37px}.first-tree-choice .modal-actions{margin-top:16px}
 @media(max-width:359px){.card-name-fields{gap:9px}.card-studio .modal-title{font-size:25px}.card-name-fields .name-input{padding:10px}}
 </style>
   <script>
@@ -263,7 +264,7 @@ window.ADVENT_CONFIG = Object.freeze({
     violet: { bough: ['#ae9bda', '#73649f', '#414263'], light: ['#d2c6f0', '#8d79b1'], gold: ['#fff5d7', '#e9c98c', '#bd935d'], glow: '#f4d9ff', decoration: 'aurora' },
     gold: { bough: ['#b9a66d', '#827a4c', '#404d35'], light: ['#e2d6a4', '#999467'], gold: ['#fff8da', '#e8c775', '#bd8f40'], glow: '#fff0b3' },
   };
-  const state = { role: 'free', adFree: false, membershipRenews: true, firstDailyClaimUsed: false, claimed: [], today: getCampaignDay(), name: '', recipient: '', treeStyle: 'classic', unlockedTreeStyles: ['classic'], treeStyleUsage: {}, customTree: null, busy: false };
+  const state = { role: 'free', adFree: false, treeChoiceCompleted: false, membershipRenews: true, firstDailyClaimUsed: false, claimed: [], today: getCampaignDay(), name: '', recipient: '', treeStyle: 'classic', unlockedTreeStyles: ['classic'], treeStyleUsage: {}, customTree: null, busy: false };
   let aiTreeDraft = null;
   let aiVideoCredit = false;
   let aiPreviewOutcome = 'success';
@@ -281,6 +282,7 @@ window.ADVENT_CONFIG = Object.freeze({
   const blessingDrafts = new Map();
   let cardExportContext = null;
   let cardTreeFlow = null;
+  let firstTreeChoiceFlow = null;
   const defaultChristmasMessage = 'May this Christmas Eve bring peace to your heart, warmth to your home, and a little light for the year ahead.';
   const christmasDraft = { message: defaultChristmasMessage, intent: '', candidate: null, generationCredit: null, exportCredits: [] };
   let christmasEditOrigin = 'preview';
@@ -343,7 +345,8 @@ window.ADVENT_CONFIG = Object.freeze({
   function readSaved() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey));
-      if (saved && typeof saved === 'object') {
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
+        state.treeChoiceCompleted = typeof saved.treeChoiceCompleted === 'boolean' ? saved.treeChoiceCompleted : true;
         if (preview && Number.isInteger(saved.previewDay) && saved.previewDay >= 0 && saved.previewDay <= 25) state.today = saved.previewDay;
         state.claimed = sanitizeDays(saved.claimed);
         state.firstDailyClaimUsed = typeof saved.firstDailyClaimUsed === 'boolean' ? saved.firstDailyClaimUsed : state.claimed.length > 0;
@@ -375,7 +378,7 @@ window.ADVENT_CONFIG = Object.freeze({
     } catch { /* A new or unavailable store starts with the first free blessing. */ }
   }
   function save() {
-    try { localStorage.setItem(storageKey, JSON.stringify({ claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, christmasDraft: {message:christmasDraft.message,intent:christmasDraft.intent,...(preview ? {candidate:christmasDraft.candidate,generationCredit:christmasDraft.generationCredit} : {})}, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({ treeChoiceCompleted: state.treeChoiceCompleted, claimed: state.claimed, firstDailyClaimUsed: state.firstDailyClaimUsed, treeStyleUsage: state.treeStyleUsage, name: state.name, recipient: state.recipient, christmasDraft: {message:christmasDraft.message,intent:christmasDraft.intent,...(preview ? {candidate:christmasDraft.candidate,generationCredit:christmasDraft.generationCredit} : {})}, ...(preview ? { role: state.role, adFree: state.adFree, membershipRenews: state.membershipRenews, adPreviewOutcome, previewDay: state.today, treeStyle: state.treeStyle, unlockedTreeStyles: state.unlockedTreeStyles, customTree: state.customTree } : {}) })); } catch { /* Browsing without storage remains usable. */ }
   }
   function announce(message) { $('live-status').textContent = message; }
   function toast(message) {
@@ -498,9 +501,10 @@ window.ADVENT_CONFIG = Object.freeze({
     topper.querySelector('.topper-shade').setAttribute('opacity', lit ? '.45' : '0');
     svg.setAttribute('aria-label', `${style.name}. ${currentTier} of 4 Christmas tree layers decorated and lit, from the bottom up. ${lit ? 'The star is shining.' : 'The star awaits the final candle.'}`);
   }
-  function openModal(markup, preserveCardTreeFlow = false) {
+  function openModal(markup, preserveCardTreeFlow = false, preserveFirstTreeChoice = false) {
     const pending = $('modal').open && pendingClaimCelebration?.version === modalVersion ? pendingClaimCelebration : null;
     if (!preserveCardTreeFlow) cardTreeFlow = null;
+    if (!preserveFirstTreeChoice) firstTreeChoiceFlow = null;
     stopMilestoneCelebration();
     releaseChristmasExport(cardExportContext);
     cardExportContext = null;
@@ -516,6 +520,20 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function closeModal(fromHistory = false) {
     if (!$('modal').open) return;
+    if (firstTreeChoiceFlow && state.busy) {
+      if (cancelPreviewAd) cancelPreviewAd();
+      modalVersion += 1;
+      if (fromHistory) {
+        try { history.pushState({ ...history.state, adventDialog: true }, ''); modalHistory = true; }
+        catch { modalHistory = false; }
+      }
+      return;
+    }
+    if (firstTreeChoiceFlow) {
+      state.treeChoiceCompleted = true;
+      firstTreeChoiceFlow = null;
+      save();
+    }
     cardTreeFlow = null;
     releaseChristmasExport(cardExportContext);
     const pending = pendingClaimCelebration?.version === modalVersion ? pendingClaimCelebration : null;
@@ -757,6 +775,60 @@ window.ADVENT_CONFIG = Object.freeze({
     const sessionTreeStyle = migrateTreeStyleId(data.treeStyle);
     state.treeStyle = state.unlockedTreeStyles.includes(sessionTreeStyle) ? sessionTreeStyle : 'classic';
     save(); render();
+  }
+  function applyInitialActivitySession(data) {
+    applySession(data);
+    if (!firstTreeChoiceFlow) {
+      // Completion is local until the service supports saving this flag; a stale false cannot undo it.
+      if (typeof data.treeChoiceCompleted === 'boolean') state.treeChoiceCompleted = state.treeChoiceCompleted || data.treeChoiceCompleted;
+      else if (state.claimed.length || data.firstDailyClaimUsed === true || data.customTree ||
+        (typeof data.treeStyle === 'string' && migrateTreeStyleId(data.treeStyle) !== 'classic') ||
+        (Array.isArray(data.unlockedTreeStyles) && data.unlockedTreeStyles.some(style => style !== 'classic'))) state.treeChoiceCompleted = true;
+      save();
+    }
+  }
+  function maybeShowFirstTreeChoice() {
+    if (state.treeChoiceCompleted || state.busy || $('modal').open) return;
+    showFirstTreeChoice();
+  }
+  async function syncActivitySession() {
+    const data = await request('/session');
+    applyInitialActivitySession(data);
+    maybeShowFirstTreeChoice();
+  }
+  async function initializeActivity() {
+    if (config.apiBase && !preview) {
+      try { await syncActivitySession(); }
+      catch { toast('Your account couldn’t be synced. Please try Restore access.'); }
+      return;
+    }
+    maybeShowFirstTreeChoice();
+  }
+  function showFirstTreeChoice(selected = firstTreeChoiceFlow?.selected || state.treeStyle) {
+    if (state.busy) return;
+    selected = migrateTreeStyleId(selected);
+    if (!treeStyles.some(style => style.id === selected)) selected = 'classic';
+    firstTreeChoiceFlow = {selected};
+    const needsVideo = selected !== state.treeStyle && treeSwitchAccess(selected) === 'video';
+    openModal(`<section class="card-studio first-tree-choice" aria-label="Welcome to Advent"><span class="modal-eyebrow">WELCOME TO ADVENT</span><h2 id="modal-title" class="modal-title">Choose your tree</h2><div class="tree-style-options" role="group" aria-label="Choose your first Christmas tree">${treeStyles.map(style => `<button type="button" class="tree-style-option" data-action="first-tree-style:${style.id}" aria-pressed="${style.id === selected}"><span class="style-thumbnail" data-look="${style.id}">${treeStyleThumbnail(style.id)}</span><span class="style-name">${style.name}</span></button>`).join('')}</div><div class="modal-actions">${button('Start my Advent', 'first-tree-confirm', 'primary', 'star', needsVideo)}</div></section>`, false, true);
+  }
+  function completeFirstTreeChoice() {
+    if (!firstTreeChoiceFlow) return;
+    state.treeChoiceCompleted = true;
+    firstTreeChoiceFlow = null;
+    save(); render(); closeModal();
+  }
+  async function confirmFirstTreeChoice(target) {
+    if (!firstTreeChoiceFlow || state.busy) return;
+    const selected = firstTreeChoiceFlow.selected;
+    if (!treeStyles.some(style => style.id === selected)) return;
+    if (selected === state.treeStyle) { completeFirstTreeChoice(); return; }
+    await changeTreeStyle(selected, target, true);
+  }
+  function handleModalBack() {
+    if (!$('modal').open) return;
+    if (!(firstTreeChoiceFlow && state.busy) && cancelPreviewAd) cancelPreviewAd();
+    closeModal(true);
   }
   function showTreeStyles(selected = state.treeStyle) {
     selected = migrateTreeStyleId(selected);
@@ -1008,7 +1080,7 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showPreviewControls() {
     if (!preview) return;
-    openModal(`<span class="modal-eyebrow">SETTINGS</span><h2 id="modal-title" class="modal-title">设置</h2><div class="demo-controls"><div><span class="demo-label">用户身份</span><div class="preview-roles" aria-label="用户身份">${['free', 'pass', 'vip'].map(role => `<button type="button" data-action="role:${role}" aria-pressed="${state.role === role}">${role === 'free' ? '免费用户' : role === 'pass' ? 'Pass' : 'VIP'}</button>`).join('')}</div></div><label class="demo-label" for="preview-day">当前日期<select id="preview-day" class="name-input">${Array.from({length:24},(_,i)=>`<option value="${i+1}"${state.today===i+1?' selected':''}>12 月 ${i+1} 日</option>`).join('')}</select></label><div><label class="demo-label" for="preview-progress">领取进度 <output id="preview-progress-value">${state.claimed.length} / 24</output></label><input id="preview-progress" class="demo-range" type="range" min="0" max="${previewProgressLimit()}" step="1" value="${state.claimed.length}"><div class="preview-roles preview-stages" aria-label="圣诞树成长阶段">${['Bare','Hope','Peace','Joy','Love'].map((name,index)=>`<button type="button" data-action="stage:${index}" aria-pressed="${tier()===index}"${index > 0 && candleData[index-1].threshold > previewProgressLimit() ? ' disabled' : ''}>${name}</button>`).join('')}</div><p class="modal-note">领取进度遵循当前日期和用户身份。</p></div><label class="demo-label" for="preview-membership">免广月度会员<select id="preview-membership" class="name-input"><option value="off"${!state.adFree ? ' selected' : ''}>未开通</option><option value="active"${state.adFree && state.membershipRenews ? ' selected' : ''}>已开通 · ${membershipPrice}/月</option><option value="cancelled"${state.adFree && !state.membershipRenews ? ' selected' : ''}>已取消续费 · 当期仍免广</option><option value="expired">已到期</option></select></label><label class="demo-label" for="preview-ad-outcome">广告填充状态<select id="preview-ad-outcome" class="name-input"><option value="filled"${adPreviewOutcome === 'filled' ? ' selected' : ''}>可播放</option><option value="no-fill"${adPreviewOutcome === 'no-fill' ? ' selected' : ''}>暂不可用</option></select></label><label class="demo-label" for="ai-preview-outcome">AI 生成状态<select id="ai-preview-outcome" class="name-input"><option value="success"${aiPreviewOutcome === 'success' ? ' selected' : ''}>生成成功</option><option value="failure"${aiPreviewOutcome === 'failure' ? ' selected' : ''}>生成失败，可免费重试</option></select></label></div><div class="modal-actions">${button('完成', 'close')}${button('重置', 'reset', 'secondary')}</div><p class="modal-note">设置仅影响本机体验状态。广告和 AI 使用本地占位，付款尚未接入。</p>`);
+    openModal(`<span class="modal-eyebrow">SETTINGS</span><h2 id="modal-title" class="modal-title">设置</h2><div class="demo-controls"><div><span class="demo-label">用户身份</span><div class="preview-roles" aria-label="用户身份">${['free', 'pass', 'vip'].map(role => `<button type="button" data-action="role:${role}" aria-pressed="${state.role === role}">${role === 'free' ? '免费用户' : role === 'pass' ? 'Pass' : 'VIP'}</button>`).join('')}</div></div><label class="demo-label" for="preview-day">当前日期<select id="preview-day" class="name-input">${Array.from({length:24},(_,i)=>`<option value="${i+1}"${state.today===i+1?' selected':''}>12 月 ${i+1} 日</option>`).join('')}</select></label><div><label class="demo-label" for="preview-progress">领取进度 <output id="preview-progress-value">${state.claimed.length} / 24</output></label><input id="preview-progress" class="demo-range" type="range" min="0" max="${previewProgressLimit()}" step="1" value="${state.claimed.length}"><div class="preview-roles preview-stages" aria-label="圣诞树成长阶段">${['Bare','Hope','Peace','Joy','Love'].map((name,index)=>`<button type="button" data-action="stage:${index}" aria-pressed="${tier()===index}"${index > 0 && candleData[index-1].threshold > previewProgressLimit() ? ' disabled' : ''}>${name}</button>`).join('')}</div><p class="modal-note">领取进度遵循当前日期和用户身份。</p></div><label class="demo-label" for="preview-membership">免广月度会员<select id="preview-membership" class="name-input"><option value="off"${!state.adFree ? ' selected' : ''}>未开通</option><option value="active"${state.adFree && state.membershipRenews ? ' selected' : ''}>已开通 · ${membershipPrice}/月</option><option value="cancelled"${state.adFree && !state.membershipRenews ? ' selected' : ''}>已取消续费 · 当期仍免广</option><option value="expired">已到期</option></select></label><label class="demo-label" for="preview-ad-outcome">广告填充状态<select id="preview-ad-outcome" class="name-input"><option value="filled"${adPreviewOutcome === 'filled' ? ' selected' : ''}>可播放</option><option value="no-fill"${adPreviewOutcome === 'no-fill' ? ' selected' : ''}>暂不可用</option></select></label><label class="demo-label" for="ai-preview-outcome">AI 生成状态<select id="ai-preview-outcome" class="name-input"><option value="success"${aiPreviewOutcome === 'success' ? ' selected' : ''}>生成成功</option><option value="failure"${aiPreviewOutcome === 'failure' ? ' selected' : ''}>生成失败，可免费重试</option></select></label></div><div class="modal-actions">${button('完成', 'close')}${button('预览首次选树', 'preview-first-tree', 'secondary')}${button('重置', 'reset', 'secondary')}</div><p class="modal-note">设置仅影响本机体验状态。广告和 AI 使用本地占位，付款尚未接入。</p>`);
   }
   function previewProgressLimit() { return isMember() ? 24 : Math.max(0, Math.min(24, state.today)); }
   function setPreviewProgress(count) {
@@ -1035,7 +1107,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (!config.apiBase) { toast('Access restore is currently unavailable. Please try again later.'); return; }
     restoreButtonBusy = true;
     $('restore-button').disabled = true;
-    try { applySession(await request('/session')); toast(isMember() || isAdFree() ? 'Your access is restored. Welcome back.' : 'No active access was found for this account.'); }
+    try { await syncActivitySession(); toast(isMember() || isAdFree() ? 'Your access is restored. Welcome back.' : 'No active access was found for this account.'); }
     catch { toast('We couldn’t restore access. Please try again.'); }
     finally { restoreButtonBusy = false; $('restore-button').disabled = false; }
   }
@@ -1088,6 +1160,7 @@ window.ADVENT_CONFIG = Object.freeze({
     showTreeStyles();
   }
   async function finishTreeSelection() {
+    if (firstTreeChoiceFlow) { completeFirstTreeChoice(); return; }
     if (!cardTreeFlow) { closeModal(); celebrateTree(); return; }
     if (!canCreateCard()) return showKeepsake();
     if (cardTreeFlow.origin === 'preview') await buildChristmasCardPreview(state.name, state.recipient, modalVersion);
@@ -1504,6 +1577,9 @@ window.ADVENT_CONFIG = Object.freeze({
     if (!target || state.busy) return;
     const [action, value] = target.dataset.action.split(':');
     if (action === 'close') closeModal();
+    else if (action === 'first-tree-style' && firstTreeChoiceFlow) showFirstTreeChoice(value);
+    else if (action === 'first-tree-confirm') confirmFirstTreeChoice(target);
+    else if (action === 'preview-first-tree' && preview) showFirstTreeChoice(state.treeStyle);
     else if (action === 'pass') showPass();
     else if (action === 'checkout') checkout(target);
     else if (action === 'subscribe') subscribeMembership(target);
@@ -1552,7 +1628,7 @@ window.ADVENT_CONFIG = Object.freeze({
       setPreviewProgress(count);
       if (stage) showMilestoneCelebration(stage); else closeModal();
     }
-    else if (action === 'reset' && preview) { state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; christmasResetVersion += 1; christmasCardResume = false; christmasDraft.message = defaultChristmasMessage; christmasDraft.intent = ''; christmasDraft.candidate = null; christmasDraft.generationCredit = null; christmasDraft.exportCredits = []; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); closeModal(); toast('设置已重置'); }
+    else if (action === 'reset' && preview) { firstTreeChoiceFlow = null; state.treeChoiceCompleted = false; state.role = 'free'; state.adFree = false; state.membershipRenews = true; state.today = 5; state.claimed = []; state.firstDailyClaimUsed = false; state.name = ''; state.recipient = ''; blessingDrafts.clear(); blessingCards.clear(); currentCard = null; christmasResetVersion += 1; christmasCardResume = false; christmasDraft.message = defaultChristmasMessage; christmasDraft.intent = ''; christmasDraft.candidate = null; christmasDraft.generationCredit = null; christmasDraft.exportCredits = []; state.treeStyle = 'classic'; state.unlockedTreeStyles = ['classic']; state.treeStyleUsage = {}; state.customTree = null; aiTreeDraft = null; aiVideoCredit = false; aiPreviewOutcome = 'success'; adPreviewOutcome = 'filled'; save(); render(); toast('设置已重置'); showFirstTreeChoice(); }
   }
 
   readSaved();
@@ -1583,13 +1659,13 @@ window.ADVENT_CONFIG = Object.freeze({
   $('modal-close').addEventListener('click', () => { if (!state.busy) closeModal(); });
   $('modal').addEventListener('cancel', (event) => { event.preventDefault(); if (!state.busy) closeModal(); });
   $('modal').addEventListener('click', (event) => { if (event.target === $('modal') && !state.busy) closeModal(); });
-  window.addEventListener('popstate', () => { if ($('modal').open) { if (cancelPreviewAd) cancelPreviewAd(); closeModal(true); } });
+  window.addEventListener('popstate', handleModalBack);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible' || preview) return;
-    if (config.apiBase) request('/session').then(applySession).catch(() => {});
+    if (config.apiBase) syncActivitySession().catch(() => {});
     else { state.today = getCampaignDay(); render(); }
   });
-  if (config.apiBase && !preview) request('/session').then(applySession).catch(() => toast('Your account couldn’t be synced. Please try Restore access.'));
+  initializeActivity();
 })();
 
 </script>
