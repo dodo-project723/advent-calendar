@@ -197,7 +197,7 @@ window.ADVENT_CONFIG = Object.freeze({
         <div class="adfree-copy"><h2 id="adfree-title">Ad-free across the app</h2><p id="adfree-description">Monthly membership · Advent benefits included</p></div>
         <button class="adfree-button" id="adfree-button" type="button"><span class="membership-price">$2.99</span><small>/ month</small></button>
       </section>
-      <footer class="footer"><button id="rules-button">How it works</button><span>·</span><button id="restore-button">Restore access</button></footer>
+      <footer class="footer"><button id="restore-button">Restore access</button></footer>
     </main>
 
   </div>
@@ -523,6 +523,7 @@ window.ADVENT_CONFIG = Object.freeze({
     if (firstTreeChoiceFlow && state.busy) {
       if (cancelPreviewAd) cancelPreviewAd();
       modalVersion += 1;
+      if (firstTreeChoiceFlow.view === 'ai-generating') showAIComposer(firstTreeChoiceFlow.aiPrompt || '');
       if (fromHistory) {
         try { history.pushState({ ...history.state, adventDialog: true }, ''); modalHistory = true; }
         catch { modalHistory = false; }
@@ -808,15 +809,18 @@ window.ADVENT_CONFIG = Object.freeze({
     if (state.busy) return;
     selected = migrateTreeStyleId(selected);
     if (!treeStyles.some(style => style.id === selected)) selected = 'classic';
-    firstTreeChoiceFlow = {selected};
+    firstTreeChoiceFlow = { ...firstTreeChoiceFlow, selected, view: 'choose' };
     const needsVideo = selected !== state.treeStyle && treeSwitchAccess(selected) === 'video';
-    openModal(`<section class="card-studio first-tree-choice" aria-label="Welcome to Advent"><span class="modal-eyebrow">WELCOME TO ADVENT</span><h2 id="modal-title" class="modal-title">Choose your tree</h2><div class="tree-style-options" role="group" aria-label="Choose your first Christmas tree">${treeStyles.map(style => `<button type="button" class="tree-style-option" data-action="first-tree-style:${style.id}" aria-pressed="${style.id === selected}"><span class="style-thumbnail" data-look="${style.id}">${treeStyleThumbnail(style.id)}</span><span class="style-name">${style.name}</span></button>`).join('')}</div><div class="modal-actions">${button('Start my Advent', 'first-tree-confirm', 'primary', 'star', needsVideo)}</div></section>`, false, true);
+    openModal(`<section class="card-studio first-tree-choice" aria-label="Welcome to Advent"><span class="modal-eyebrow">WELCOME TO ADVENT</span><h2 id="modal-title" class="modal-title">Choose your tree</h2><button type="button" class="ai-tree-entry" data-action="ai-tree"><span class="ai-entry-icon">${icon('star')}</span><span><strong>Create your own tree <em>AI</em></strong></span>${icon('chevron')}</button><div class="tree-style-options" role="group" aria-label="Choose your first Christmas tree">${treeStyles.map(style => `<button type="button" class="tree-style-option" data-action="first-tree-style:${style.id}" aria-pressed="${style.id === selected}"><span class="style-thumbnail" data-look="${style.id}">${treeStyleThumbnail(style.id)}</span><span class="style-name">${style.name}</span></button>`).join('')}</div><div class="modal-actions">${button('Start my Advent', 'first-tree-confirm', 'primary', 'star', needsVideo)}</div></section>`, false, true);
   }
   function completeFirstTreeChoice() {
     if (!firstTreeChoiceFlow) return;
+    const completedBefore = state.treeChoiceCompleted;
     state.treeChoiceCompleted = true;
+    try { render(); }
+    catch (error) { state.treeChoiceCompleted = completedBefore; throw error; }
     firstTreeChoiceFlow = null;
-    save(); render(); closeModal();
+    save(); closeModal();
   }
   async function confirmFirstTreeChoice(target) {
     if (!firstTreeChoiceFlow || state.busy) return;
@@ -831,6 +835,10 @@ window.ADVENT_CONFIG = Object.freeze({
     closeModal(true);
   }
   function showTreeStyles(selected = state.treeStyle) {
+    if (firstTreeChoiceFlow) {
+      if (firstTreeChoiceFlow.view === 'ai-compose') firstTreeChoiceFlow.aiPrompt = $('ai-tree-prompt')?.value || '';
+      showFirstTreeChoice(); return;
+    }
     selected = migrateTreeStyleId(selected);
     const style = getTreeStyle(selected);
     const options = [...treeStyles, ...(state.customTree ? [getTreeStyle('custom')] : [])];
@@ -849,8 +857,9 @@ window.ADVENT_CONFIG = Object.freeze({
     'Crystal Christmas tree with icy blue branches, clear glass/crystal drops and soft lilac highlights',
     'Aurora Christmas tree with purple and teal branches, flowing northern lights and tiny silver stars',
   ];
-  function showAIComposer(prompt = aiTreeDraft?.prompt || state.customTree?.prompt || '') {
-    openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Imagine your tree</h2><label class="name-label" for="ai-tree-prompt">What would you like?</label><textarea id="ai-tree-prompt" class="name-input ai-prompt" rows="3" maxlength="120" placeholder="A pink tree with pearl ornaments…" aria-describedby="ai-prompt-hint"></textarea><div class="ai-suggestions" aria-label="Tree style ideas">${aiSuggestions.map((text, index) => `<button type="button" data-action="ai-idea:${index}">${text}</button>`).join('')}</div><p id="ai-prompt-hint" class="name-hint">Colors, decorations, a little imagination. <span id="ai-prompt-count">${prompt.length} / 120</span></p><div class="modal-actions">${button('Generate my tree', 'ai-generate', 'primary', 'star', !aiVideoCredit && !isMember())}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`, true);
+  function showAIComposer(prompt = firstTreeChoiceFlow?.aiPrompt ?? aiTreeDraft?.prompt ?? state.customTree?.prompt ?? '') {
+    if (firstTreeChoiceFlow) { firstTreeChoiceFlow.aiPrompt = prompt; firstTreeChoiceFlow.view = 'ai-compose'; }
+    openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Imagine your tree</h2><label class="name-label" for="ai-tree-prompt">What would you like?</label><textarea id="ai-tree-prompt" class="name-input ai-prompt" rows="3" maxlength="120" placeholder="A pink tree with pearl ornaments…" aria-describedby="ai-prompt-hint"></textarea><div class="ai-suggestions" aria-label="Tree style ideas">${aiSuggestions.map((text, index) => `<button type="button" data-action="ai-idea:${index}">${text}</button>`).join('')}</div><p id="ai-prompt-hint" class="name-hint">Colors, decorations, a little imagination. <span id="ai-prompt-count">${prompt.length} / 120</span></p><div class="modal-actions">${button('Generate my tree', 'ai-generate', 'primary', 'star', !aiVideoCredit && !isMember())}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`, true, !!firstTreeChoiceFlow);
     $('ai-tree-prompt').value = prompt;
   }
   function makePrototypeTree(prompt) {
@@ -863,12 +872,14 @@ window.ADVENT_CONFIG = Object.freeze({
   async function generateAITree(target) {
     const prompt = $('ai-tree-prompt').value.trim().slice(0, 120);
     if (prompt.length < 2) { $('ai-tree-prompt').setAttribute('aria-invalid', 'true'); $('ai-tree-prompt').focus(); errorMessage('Describe your tree or choose an idea above.'); return; }
+    if (firstTreeChoiceFlow) firstTreeChoiceFlow.aiPrompt = prompt;
     const version = modalVersion;
     const needsVideo = !aiVideoCredit && !isMember();
     await withBusy(target, needsVideo ? 'Opening video…' : 'Creating your tree…', async () => {
       if (needsVideo) { await requestRewardVideo({placement:'ai-tree'}); aiVideoCredit = true; }
       if (!$('modal').open || modalVersion !== version) return;
-      openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Creating your tree…</h2><div class="ai-generating" role="status" aria-live="polite"><span class="ai-orbit">${icon('star')}</span><p>Finding your colors…</p></div>`, true);
+      if (firstTreeChoiceFlow) firstTreeChoiceFlow.view = 'ai-generating';
+      openModal(`<span class="modal-eyebrow">YOUR OWN AI CHRISTMAS TREE</span><h2 id="modal-title" class="modal-title">Creating your tree…</h2><div class="ai-generating" role="status" aria-live="polite"><span class="ai-orbit">${icon('star')}</span><p>Finding your colors…</p></div>`, true, !!firstTreeChoiceFlow);
       const generatingVersion = modalVersion;
       for (const message of ['Shaping the branches…', 'Adding your finishing touches…']) {
         await new Promise(resolve => setTimeout(resolve, 600));
@@ -876,7 +887,8 @@ window.ADVENT_CONFIG = Object.freeze({
         document.querySelector('.ai-generating p').textContent = message;
       }
       if (aiPreviewOutcome === 'failure') {
-        openModal(modalHeader('restore', 'LET’S TRY THAT AGAIN', 'Your tree needs another moment.', 'Please try again.') + `<div class="modal-actions">${button('Try again', 'ai-retry', 'primary', 'restore')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`, true);
+        if (firstTreeChoiceFlow) firstTreeChoiceFlow.view = 'ai-failure';
+        openModal(modalHeader('restore', 'LET’S TRY THAT AGAIN', 'Your tree needs another moment.', 'Please try again.') + `<div class="modal-actions">${button('Try again', 'ai-retry', 'primary', 'restore')}${button('Back to tree styles', 'tree-styles', 'secondary')}</div>`, true, !!firstTreeChoiceFlow);
         aiTreeDraft = { ...makePrototypeTree(prompt), retry: true };
         return;
       }
@@ -886,9 +898,10 @@ window.ADVENT_CONFIG = Object.freeze({
   }
   function showAITreeResult() {
     if (!aiTreeDraft) return showAIComposer();
+    if (firstTreeChoiceFlow) firstTreeChoiceFlow.view = 'ai-result';
     const unchanged = state.treeStyle === 'custom' && ['prompt','palette','decoration'].every(key => state.customTree?.[key] === aiTreeDraft[key]);
     const needsVideo = !unchanged && treeSwitchAccess('custom', aiTreeDraft.videoAuthorized) === 'video';
-    openModal(`<span class="modal-eyebrow">IMAGINED BY YOU</span><h2 id="modal-title" class="modal-title">Your tree is ready</h2><div class="ai-tree-result">${treeStyleThumbnail('custom', aiTreeDraft)}</div><p class="ai-result-prompt">“${escapeHTML(aiTreeDraft.prompt)}”</p><div class="modal-actions">${button('Use my tree', 'ai-use', 'primary', 'check', needsVideo)}${button('Try another look', 'ai-tree', 'secondary')}</div>`, true);
+    openModal(`<span class="modal-eyebrow">IMAGINED BY YOU</span><h2 id="modal-title" class="modal-title">Your tree is ready</h2><div class="ai-tree-result">${treeStyleThumbnail('custom', aiTreeDraft)}</div><p class="ai-result-prompt">“${escapeHTML(aiTreeDraft.prompt)}”</p><div class="modal-actions">${button(firstTreeChoiceFlow ? 'Use this tree' : 'Use my tree', 'ai-use', 'primary', 'check', needsVideo)}${button('Try another look', 'ai-tree', 'secondary')}${firstTreeChoiceFlow ? button('Back to tree styles', 'tree-styles', 'secondary') : ''}</div>`, true, !!firstTreeChoiceFlow);
   }
   async function useAITree(target) {
     if (!aiTreeDraft) return;
@@ -898,10 +911,18 @@ window.ADVENT_CONFIG = Object.freeze({
     await withBusy(target, access === 'video' ? 'Waiting for your video…' : 'Changing your tree…', async () => {
       if (access === 'video') await requestRewardVideo({placement:'tree-style',styleId:'custom'});
       if (!$('modal').open || modalVersion !== version) return;
-      state.customTree = { prompt: aiTreeDraft.prompt, palette: aiTreeDraft.palette, decoration: aiTreeDraft.decoration };
-      state.unlockedTreeStyles = sanitizeTreeStyles([...state.unlockedTreeStyles, 'custom']);
-      state.treeStyle = 'custom'; aiTreeDraft.videoAuthorized = false;
-      save(); render(); await finishTreeSelection();
+      const previous = firstTreeChoiceFlow ? {customTree:state.customTree, unlockedTreeStyles:state.unlockedTreeStyles, treeStyle:state.treeStyle} : null;
+      try {
+        state.customTree = { prompt: aiTreeDraft.prompt, palette: aiTreeDraft.palette, decoration: aiTreeDraft.decoration };
+        state.unlockedTreeStyles = sanitizeTreeStyles([...state.unlockedTreeStyles, 'custom']);
+        state.treeStyle = 'custom';
+        render(); await finishTreeSelection();
+        aiTreeDraft.videoAuthorized = false;
+        save();
+      } catch (error) {
+        if (previous && firstTreeChoiceFlow) { Object.assign(state, previous); save(); }
+        throw error;
+      }
       toast('Your own tree, ready for a little more light.');
     });
   }
@@ -1639,7 +1660,6 @@ window.ADVENT_CONFIG = Object.freeze({
   $('candles').addEventListener('click', (event) => { const candle = event.target.closest('[data-candle]'); if (candle) showCandle(Number(candle.dataset.candle)); });
   $('about-button').addEventListener('click', showRules);
   $('preview-button').addEventListener('click', showPreviewControls);
-  $('rules-button').addEventListener('click', showRules);
   $('restore-button').addEventListener('click', restore);
   $('pass-button').addEventListener('click', showPass);
   $('unwrap-all-button').addEventListener('click', event => unwrapAllBlessings(event.currentTarget));
