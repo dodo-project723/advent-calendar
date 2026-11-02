@@ -24,6 +24,7 @@ main{padding:0 14px}.tree-card{display:grid;grid-template-columns:44% minmax(0,1
 .tree-summary{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-width:0;padding:1px 0 0 5px}.tier-label{font-size:9px;letter-spacing:1px;color:#afbb96;line-height:1.4}.tree-summary h2{font-family:var(--serif);font-size:32px;line-height:1.1;letter-spacing:-.5px;color:#eddaad;font-weight:400;margin:4px 0 9px}.growth{width:100%;margin:0 0 10px}.growth-labels{font-size:12px;color:#aeb9a3;line-height:1.2}.growth-labels strong{color:#f0ddb0;font-weight:400;font-size:18px}.progress-unit{font-size:10px;margin-left:3px}.growth-track{height:3px;border-radius:3px;background:#d2c48a16;margin-top:6px;overflow:hidden}.growth-track>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#a08e55,#ecd491);transition:width .6s;border-radius:3px}#next-milestone{font-size:10px;line-height:1.4;color:#9cac8e;margin:6px 0 0}
 .primary-button{background:linear-gradient(110deg,#edd6a0,#d6b777);color:#293124;min-height:47px;border-radius:9px;padding:11px 14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:600;width:100%;box-shadow:0 2px 8px #00000012}.primary-button .icon{width:16px;height:16px}.secondary-button{min-height:45px;width:100%;display:flex;gap:8px;align-items:center;justify-content:center;background:#ffffff06;color:#d2c39f;border:1px solid #c9b77c30;border-radius:9px;padding:10px 13px;font-size:12px}.secondary-button .icon{width:16px;height:16px}.text-button{display:inline-flex;align-items:center;gap:8px;min-height:44px;background:transparent;padding:8px 0;font-size:12px;color:var(--gold)}
 .candles{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--line)}.candle-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;min-height:47px;border-radius:6px;background:transparent;color:#84978b}.candle-button.is-lit{color:var(--gold)}.candle-figure{position:relative;width:14px;height:22px;margin-top:3px}.candle-wax{position:absolute;inset:6px 2px 0;background:linear-gradient(90deg,#727d6c,#a8ad8c 45%,#717c6a);border-radius:2px;opacity:.5}.candle-wax:after{content:"";position:absolute;left:4px;top:-3px;width:1px;height:4px;background:#c4ba8d}.candle-flame{position:absolute;top:-3px;left:4px;width:6px;height:10px;transform:rotate(7deg);border-radius:70% 30% 58% 42%;background:linear-gradient(#fff2c6,#ecc979 65%,#bd8d40);opacity:0}.is-lit .candle-flame{opacity:1;box-shadow:0 0 10px 4px #e2b75225}.is-lit .candle-wax{background:linear-gradient(90deg,#a99361,#e6d5a2 45%,#b8a171);opacity:1}.candle-name{font-family:var(--serif);font-size:12px;line-height:1.2}
+.journey-guidance{grid-column:1/-1;margin-top:7px;padding:12px 1px 2px;border-top:1px solid var(--line)}.journey-title{font-family:var(--serif);font-size:19px;font-weight:400;line-height:1.3;letter-spacing:-.2px;color:#e8d7ac;margin:0}.journey-description{font-size:11px;line-height:1.65;color:#adbaa3;margin:4px 0 0}.journey-button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px;margin-top:9px;padding:9px 12px;border:1px solid #d1ba7b55;border-radius:9px;background:#d5bf7e0c;color:#ead5a0;font-size:11px;font-weight:400}.journey-button .icon{width:14px;height:14px}.journey-button:active{background:#d5bf7e1c}.journey-button .ad-badge{font-size:8px}
 .calendar-section{margin-top:13px}.section-heading{display:flex;align-items:center;gap:9px;margin-bottom:9px;min-height:25px}.section-heading h2{font-family:var(--serif);font-size:20px;letter-spacing:-.4px;font-weight:400;margin:0}.calendar-date{margin-left:auto;display:flex;align-items:baseline;gap:4px;font-size:11px;color:#9dac9a;white-space:nowrap}.calendar-date strong{font-weight:400;color:#e6c986;font-size:13px}.access-label{font-size:8px;letter-spacing:.5px;color:#c7bc8c;margin-left:auto}.access-label:not([hidden])~.calendar-date{margin-left:0}
 .calendar-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.day{position:relative;height:58px;border:1px solid #c4c8ad12;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#1b2b26;color:#7d9181;overflow:hidden;padding:5px 2px;transition:background .2s,transform .15s}.day:active{transform:scale(.96)}.day-number{font-family:var(--serif);font-size:22px;line-height:1;font-weight:400}.day-meta{display:flex;align-items:center;justify-content:center;gap:3px;min-height:10px;font-size:9px;line-height:1.2}.day-meta .icon{width:10px;height:10px;stroke-width:1.8}.day.is-opened{background:linear-gradient(145deg,#2c402e,#233728);border-color:#c9b77930;color:#e4d7a9}.day.is-opened .day-meta{color:#abc096}.day.is-missed{background:#322e27;border-color:#bb8b7130;color:#e0b9a1}.day.is-missed .day-meta{color:#d4ad94}.day.is-today{background:linear-gradient(135deg,#f0d69c,#d6b573);border-color:#eddaac;color:#29311f;box-shadow:0 2px 12px #e3c77e12}.day.is-today .day-number{font-size:24px}.day.is-today .day-meta{font-size:8px;letter-spacing:.6px;font-weight:700}.day.is-today:before{content:"";position:absolute;inset:3px;border:1px solid #fff8dd47;border-radius:6px;pointer-events:none}.today-pin{position:absolute;top:6px;right:6px;width:3px;height:3px;border-radius:50%;background:#485038}.day.is-finale:not(.is-today){border-color:#bba56c59;background:radial-gradient(ellipse at 50% 20%,#bbae6d16,transparent 80%),#1b2b26}.day.is-finale.is-opened{background:linear-gradient(145deg,#37432d,#263a29)}.day.is-finale .day-number{color:#c5b783}.day.is-finale.is-opened .day-number{color:var(--gold)}
 .finale-card{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border:1px solid #bdad7838;border-radius:12px;background:linear-gradient(120deg,#29392b,#1b2b23);min-height:74px}.finale-art{position:relative;flex:none;width:37px;height:46px;transform:rotate(-8deg);background:linear-gradient(150deg,#e6d5ab,#b9a476);border:2px solid #e5d6b1;outline:1px solid #bda572;box-shadow:0 3px 5px #08130f30;text-align:center;color:#4b5d43}.finale-art>.icon{width:19px;height:19px;margin-top:7px;stroke-width:1}.card-line{display:block;height:1px;width:20px;background:#938557;margin:4px auto 0}.card-line.short{width:12px;margin-top:2px}.finale-copy{flex:1;min-width:0}.finale-copy h2{font-family:var(--serif);font-size:19px;letter-spacing:-.3px;font-weight:400;margin:0;color:#f0dfb9;line-height:1.3}.finale-copy p{color:#a8b59e;font-size:10px;margin:3px 0 0}.finale-card>.icon-button{width:36px;color:var(--gold)}
@@ -176,6 +177,7 @@ window.ADVENT_CONFIG = Object.freeze({
           <div class="growth"><div class="growth-labels"><span><strong id="claimed-count">0</strong> / 24 <span class="progress-unit">blessings</span></span></div><div class="growth-track" role="progressbar" aria-label="Advent blessings opened" aria-valuenow="0" aria-valuemin="0" aria-valuemax="24"><span id="growth-fill"></span></div><p id="next-milestone">Hope at 1 blessing</p></div>
         </div>
         <div class="candles" id="candles" aria-label="Four Advent candles"></div>
+        <div class="journey-guidance" id="journey-guidance"><h3 class="journey-title" id="journey-title">A little light, just for today.</h3><p class="journey-description" id="journey-description">A new blessing is waiting to be unwrapped.</p><div id="journey-action"></div></div>
       </section>
 
       <section class="calendar-section" aria-labelledby="calendar-title">
@@ -328,6 +330,49 @@ window.ADVENT_CONFIG = Object.freeze({
     if (isMember()) return 'available';
     return day < state.today ? 'missed' : 'locked';
   }
+  function milestoneMessage(count = state.claimed.length) {
+    const next = candleData.find(item => count < item.threshold);
+    if (!next) return 'Every light is shining. All yours.';
+    const remaining = next.threshold - count;
+    return `${remaining === 1 ? 'One more blessing' : `${remaining} more blessings`} until ${next.name} glows.`;
+  }
+  function journeyPhase() {
+    if (preview) return state.today === 0 ? 'before' : 'active';
+    const now = new Date();
+    if (now < new Date(campaignYear, 11, 1)) return 'before';
+    return now >= new Date(campaignYear + 1, 0, 1) ? 'closed' : 'active';
+  }
+  function journeyGuidance() {
+    const count = state.claimed.length;
+    const today = state.today >= 1 && state.today <= 24 ? state.today : null;
+    const receivedToday = today !== null && state.claimed.includes(today);
+    const recent = state.claimed.at(-1);
+    const phase = journeyPhase();
+    if (phase === 'closed') return {title:'A little light to keep with you.', description:count ? 'Your blessings are here, whenever you need them.' : 'Thank you for sharing this Christmas season.', action:recent ? 'read' : '', day:recent, label:'Revisit a blessing'};
+    if (phase === 'before' && !isMember()) return {title:'A season of little lights.', description:'Your first blessing arrives December 1.', action:recent ? 'read' : '', day:recent, label:'Revisit a blessing'};
+    if (canCreateCard() && (state.today >= 24 || count === 24)) return {title:'Send a little Christmas warmth.', description:'Turn your tree into a wish for someone you love.', action:'card', label:'Make my Christmas card'};
+    if (today !== null && !receivedToday) return {title:'A little light, just for today.', description:'A new blessing is waiting to be unwrapped.', action:'day', day:today, label:'Open today’s blessing', ad:dailyClaimNeedsAd()};
+    const missed = Array.from({length:24}, (_, index) => index + 1).filter(day => day < state.today && statusFor(day) !== 'opened');
+    if (missed.length) return {title:receivedToday ? 'Today’s warmth is tucked away.' : 'A little light is still waiting.', description:`${missed.length === 1 ? 'One blessing is' : `${missed.length} blessings are`} still here for you.`, action:'day', day:missed[0], label:'Open a waiting blessing', ad:!hasBlessingAdFreeAccess()};
+    const next = Array.from({length:24}, (_, index) => index + 1).find(day => !state.claimed.includes(day));
+    if (isMember() && next) return {title:'A little more light, at your pace.', description:'Another blessing is yours to unwrap whenever you wish.', action:'day', day:next, label:'Unwrap the next blessing', ad:false};
+    if (receivedToday) return {title:'Today’s warmth is tucked away.', description:state.today < 24 ? 'Another little blessing will be here tomorrow.' : 'Keep this little light close to your heart.', action:'share', day:today, label:'Share today’s blessing'};
+    return {title:'A little light to keep with you.', description:'Your blessings are here, whenever you need them.', action:recent ? 'read' : '', day:recent, label:'Revisit a blessing'};
+  }
+  function renderJourneyGuidance() {
+    const guidance = journeyGuidance();
+    $('journey-title').textContent = guidance.title;
+    $('journey-description').textContent = guidance.description;
+    $('journey-action').innerHTML = guidance.action ? button(guidance.label, 'journey-next', 'journey', guidance.action === 'card' ? 'star' : guidance.action === 'share' ? 'share' : 'gift', guidance.ad === true) : '';
+  }
+  function followJourneyGuidance() {
+    if (state.busy) return;
+    if (!config.apiBase && !preview && state.today !== getCampaignDay()) { state.today = getCampaignDay(); render(); }
+    const guidance = journeyGuidance();
+    if (guidance.action === 'card') beginChristmasCard();
+    else if (guidance.action === 'share') showBlessingComposer(guidance.day);
+    else if (guidance.action === 'day' || guidance.action === 'read') showDay(guidance.day);
+  }
   function sanitizeDays(days, maximum = 24) {
     return Array.isArray(days) ? [...new Set(days.filter((day) => Number.isInteger(day) && day >= 1 && day <= Math.min(24, maximum)))].sort((a, b) => a - b) : [];
   }
@@ -415,8 +460,8 @@ window.ADVENT_CONFIG = Object.freeze({
     applyTreeLighting($('advent-tree'), currentTier);
     $('tier-label').textContent = `${currentTier} / 4 CANDLES`;
     $('tree-title').textContent = currentTier ? candleData[currentTier - 1].name : 'Your tree';
-    const next = candleData.find((item) => count < item.threshold);
-    $('next-milestone').textContent = next ? `${next.name} at ${next.threshold} blessing${next.threshold === 1 ? '' : 's'}` : 'Tree complete';
+    $('next-milestone').textContent = milestoneMessage(count);
+    renderJourneyGuidance();
     $('candles').innerHTML = candleData.map((item, index) => `<button class="candle-button${count >= item.threshold ? ' is-lit' : ''}" type="button" data-candle="${index}" aria-label="Candle of ${item.name}, ${count >= item.threshold ? 'lit' : `opens after ${item.threshold} blessing${item.threshold === 1 ? '' : 's'}`}"><span class="candle-figure" aria-hidden="true"><span class="candle-wax"></span><span class="candle-flame"></span></span><span class="candle-name">${item.name}</span></button>`).join('');
     $('calendar-grid').innerHTML = Array.from({ length: 24 }, (_, index) => {
       const day = index + 1;
@@ -652,8 +697,7 @@ window.ADVENT_CONFIG = Object.freeze({
     later(finale ? 3900 : 2860, () => {
       applyTreeLighting(tree, stage); phase('complete');
       if (stage === 1 && remindFirstLayer) showFirstLayerCardHighlight(firstLayerHighlightVersion);
-      const next = candleData[stage];
-      $('next-milestone').textContent = next ? `${next.name} at ${next.threshold} blessing${next.threshold === 1 ? '' : 's'}` : 'Tree complete';
+      $('next-milestone').textContent = milestoneMessage();
       toast(caption); announce(`${candle.threshold} blessing${candle.threshold === 1 ? '' : 's'} received. Candle of ${candle.name} and tree layer ${stage} lit.${finale ? ' The star is shining.' : ''}`);
     });
     later(finale ? 5200 : 4200, stopMilestoneCelebration);
@@ -733,7 +777,7 @@ window.ADVENT_CONFIG = Object.freeze({
       overlay.classList.add('is-finale'); card.dataset.magicPhase = 'star';
     });
     later(lastStart + 1250, () => {
-      card.dataset.magicPhase = 'complete'; $('next-milestone').textContent = 'Tree complete';
+      card.dataset.magicPhase = 'complete'; $('next-milestone').textContent = milestoneMessage();
       toast(caption); announce(caption);
     });
     later(lastStart + 2150, stopMilestoneCelebration);
@@ -1041,7 +1085,7 @@ window.ADVENT_CONFIG = Object.freeze({
         showDay(day, true);
         if (newTier > previousTier) pendingClaimCelebration = {day, stage:newTier, firstLayer:previousTier === 0, version:modalVersion};
         else celebrateTree();
-        toast('Your blessing is ready to keep.');
+        toast(newTier > previousTier ? 'A little light, yours to keep.' : `A little warmth, yours to keep. ${milestoneMessage()}`);
         announce(`Day ${day} received. ${effectiveCount()} of 24 blessings.`);
       }
     });
@@ -1665,6 +1709,7 @@ window.ADVENT_CONFIG = Object.freeze({
   render();
   document.querySelector('.wordmark').addEventListener('click', event => { if (preview) { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
   $('calendar-grid').addEventListener('click', (event) => { const day = event.target.closest('[data-day]'); if (day) showDay(Number(day.dataset.day)); });
+  $('journey-action').addEventListener('click', event => { if (event.target.closest('[data-action="journey-next"]')) followJourneyGuidance(); });
   $('candles').addEventListener('click', (event) => { const candle = event.target.closest('[data-candle]'); if (candle) showCandle(Number(candle.dataset.candle)); });
   $('about-button').addEventListener('click', showRules);
   $('preview-button').addEventListener('click', showPreviewControls);
